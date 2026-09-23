@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anteraja Hub Admin - Priority SLA Queue</title>
+  <meta name="description" content="Dashboard pemantauan antrean SLA dan dispatch kurir secara real-time.">
+  
+  <!-- Font & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,500,0,0&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="styles.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+
+  <!-- HEADER UTAMA -->
+  <header class="app-header">
+    <div class="brand-area">
+      <img alt="Anteraja Logo" src="../src/logo.png">
+      <span class="badge badge-primary">HUB ADMIN</span>
+    </div>
+    
+    <div class="header-actions">
+      <div class="header-info-pill">
+        <span class="material-symbols-outlined text-sm">location_on</span>
+        HUB-JKS-01 • Jaksel
+      </div>
+      <div class="header-info-pill">
+        <span class="material-symbols-outlined text-sm">schedule</span>
+        23:21:21 WIB
+      </div>
+      <button class="btn btn-outline" style="border-radius: 999px; padding: 0.5rem;" aria-label="Notifications">
+        <span class="material-symbols-outlined">notifications</span>
+      </button>
+      <button class="btn btn-primary rounded-full">
+        <span class="material-symbols-outlined">bolt</span> Quick Dispatch
+      </button>
+    </div>
+  </header>
+
+  <div class="app-body">
+    
+    <!-- SIDEBAR -->
+    <aside class="sidebar" aria-label="Sidebar Navigation">
+      <div class="sidebar-top">
+        <div class="profile-card">
+          <div class="profile-avatar">J4</div>
+          <div>
+            <p class="font-bold text-sm">Hub JKT-04</p>
+            <p class="text-xs text-secondary flex items-center gap-1">
+              <span class="status-dot pulse" style="background-color: var(--success-text);"></span> Active Session • Live
+            </p>
+          </div>
+        </div>
+
+        <nav class="side-nav">
+          <a href="inbound-sorting.html">
+            <span class="nav-label"><span class="material-symbols-outlined">inbox</span> Inbound Sorting</span>
+          </a>
+          <a href="sla-queue.html" class="active">
+            <span class="nav-label"><span class="material-symbols-outlined">timer</span> SLA Queue</span>
+          </a>
+          <a href="outbound-dispatch.html">
+            <span class="nav-label"><span class="material-symbols-outlined">local_shipping</span> Outbound Dispatch</span>
+          </a>
+          <a href="manifest-generator.html">
+            <span class="nav-label"><span class="material-symbols-outlined">description</span> Manifest Generator</span>
+          </a>
+        </nav>
+      </div>
+      
+      <div class="sidebar-bottom">
+        <div class="profile-card" style="background-color: transparent; border: none; padding: 0; margin-bottom: 0;">
+          <div class="profile-avatar" style="background-color: var(--primary-fixed); color: var(--primary);">AB</div>
+          <div>
+            <p class="font-bold text-sm">Admin Budi</p>
+            <p class="text-xs text-secondary">ID: ADM-102 • Hub Operator</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+      <header class="page-header">
+        <p class="breadcrumb">Operations / HUB-JKS-01 / <span class="text-primary font-bold">Priority SLA Queue</span></p>
+        <div class="flex justify-between items-center mt-2">
+          <h1 class="text-2xl font-bold">Panel Operasional & Antrean Paket Hub</h1>
+          <button class="btn btn-outline"><span class="material-symbols-outlined">refresh</span> Refresh Live Queue</button>
+        </div>
+      </header>
+
+      <!-- WARNING ALERT -->
+      <section class="alert-warning">
+        <div class="alert-icon">
+          <span class="material-symbols-outlined">warning</span>
+        </div>
+        <div class="flex-1">
+          <h3 class="font-bold text-sm">CAPACITY WARNING ALERT</h3>
+          <p class="text-sm mt-1">Hub JKS-01 total workload (In Hub: 142 + In Transit: 38) has reached <strong style="color: var(--danger-text);">90%</strong> of max capacity (200 packages). Recommended Action: Trigger Priority Outbound Dispatch to avoid SLA breach cascades.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="btn btn-outline" style="background: white;">Acknowledge</button>
+          <button class="btn btn-primary" style="background: var(--primary);"><span class="material-symbols-outlined">filter_alt</span> Filter Critical Packages</button>
+        </div>
+      </section>
+
+      <!-- STATS -->
+      <section class="stats-grid mb-6" style="margin-bottom: 1.5rem;">
+        <article class="panel">
+          <div class="panel-body flex justify-between items-center">
+            <div>
+              <p class="text-xs font-semibold text-secondary uppercase mb-1">In Hub Packages</p>
+              <div class="flex items-baseline gap-2">
+                <span class="text-2xl font-bold">142</span>
+                <span class="text-sm text-secondary">Packages</span>
+              </div>
+            </div>
+            <div class="p-3 rounded-lg" style="background: var(--primary-fixed); color: var(--primary);">
+              <span class="material-symbols-outlined text-2xl">warehouse</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-body flex justify-between items-center">
+            <div>
+              <p class="text-xs font-semibold text-secondary uppercase mb-1">Incoming / In Transit</p>
+              <div class="flex items-baseline gap-2">
+                <span class="text-2xl font-bold">38</span>
+                <span class="text-sm text-secondary">Packages</span>
+              </div>
+            </div>
+            <div class="p-3 rounded-lg" style="background: var(--info-bg); color: var(--info-text);">
+              <span class="material-symbols-outlined text-2xl">local_shipping</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-body">
+            <div class="flex justify-between items-start mb-3">
+              <div>
+                <p class="text-xs font-semibold text-secondary uppercase mb-1">Capacity Load Gauge</p>
+                <div class="flex items-baseline gap-2">
+                  <span class="text-2xl font-bold" style="color: var(--warning-text);">180</span>
+                  <span class="text-sm text-secondary">/ 200 Max Capacity</span>
+                </div>
+              </div>
+              <span class="badge badge-warning">HIGH LOAD (90%)</span>
+            </div>
+            <div class="progress-bar-container">
+              <div class="progress-bar-fill" style="width: 90%;"></div>
+            </div>
+            <div class="flex justify-between text-xs text-secondary mt-1">
+              <span>0 PKG</span>
+              <span>200 MAX</span>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- TABLE -->
+      <section class="panel">
+        <header class="panel-header">
+          <div class="flex items-center gap-3">
+            <h2 class="text-lg font-bold flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary">hourglass_top</span> SLA & Priority Queue
+            </h2>
+            <span class="badge badge-primary">24 Packages in Queue</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="flex items-center border rounded-lg px-3 py-2" style="background: white;">
+              <span class="material-symbols-outlined text-secondary text-sm mr-2">search</span>
+              <input type="text" placeholder="Search Tracking ID..." style="border: none; outline: none; font-size: 0.875rem; background: transparent;">
+            </div>
+            <div class="flex items-center gap-2 text-sm text-secondary">
+              Service: 
+              <select class="form-select" style="width: auto; padding-top: 0.25rem; padding-bottom: 0.25rem;">
+                <option>All Services</option>
+              </select>
+            </div>
+          </div>
+        </header>
+
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Tracking ID</th>
+                <th>Service Type</th>
+                <th>Arrival Timestamp</th>
+                <th>SLA Remaining</th>
+                <th>Priority Status</th>
+                <th style="text-align: right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: var(--danger-bg);">
+                <td class="font-bold">TRK-2139410001 <span class="material-symbols-outlined text-sm text-secondary ml-1">content_copy</span></td>
+                <td><span class="badge badge-primary" style="background: var(--primary); color: white;">Same Day</span></td>
+                <td>2026-09-17 08:20</td>
+                <td><span class="badge badge-danger" style="background: #fecdd3; border: none; color: var(--danger-text);"><span class="status-dot" style="background: var(--danger-text);"></span> 18 mins</span></td>
+                <td><span class="badge badge-warning" style="background: #fef08a;"><span class="material-symbols-outlined text-sm mr-1">flag</span> PRIORITY OVERRIDE</span></td>
+                <td style="text-align: right;">
+                  <button class="btn btn-outline text-xs mr-2" style="background: white;">Remove Flag</button>
+                  <button class="btn btn-primary text-xs" data-open-modal="modal-outbound-dispatch"><span class="material-symbols-outlined text-sm">local_shipping</span> Outbound Dispatch</button>
+                </td>
+              </tr>
+              <tr style="background-color: var(--danger-bg);">
+                <td class="font-bold">TRK-2139410084 <span class="material-symbols-outlined text-sm text-secondary ml-1">content_copy</span></td>
+                <td><span class="badge badge-primary" style="background: var(--primary); color: white;">Same Day</span></td>
+                <td>2026-09-17 08:35</td>
+                <td><span class="badge badge-danger" style="background: #fecdd3; border: none; color: var(--danger-text);"><span class="status-dot" style="background: var(--danger-text);"></span> 26 mins</span></td>
+                <td>Standard Queue</td>
+                <td style="text-align: right;">
+                  <button class="btn btn-outline text-xs mr-2">Set Priority</button>
+                  <button class="btn btn-primary text-xs" data-open-modal="modal-outbound-dispatch"><span class="material-symbols-outlined text-sm">local_shipping</span> Outbound Dispatch</button>
+                </td>
+              </tr>
+              <tr style="background-color: var(--warning-bg);">
+                <td class="font-bold">TRK-2139410192 <span class="material-symbols-outlined text-sm text-secondary ml-1">content_copy</span></td>
+                <td><span class="badge badge-info" style="border: none; background: #e0f2fe;">Next Day</span></td>
+                <td>2026-09-17 07:45</td>
+                <td><span class="badge badge-warning" style="background: #fde047; border: none;"><span class="status-dot" style="background: var(--warning-text);"></span> 45 mins</span></td>
+                <td>Standard Queue</td>
+                <td style="text-align: right;">
+                  <button class="btn btn-outline text-xs mr-2">Set Priority</button>
+                  <button class="btn btn-primary text-xs" data-open-modal="modal-outbound-dispatch"><span class="material-symbols-outlined text-sm">local_shipping</span> Outbound Dispatch</button>
+                </td>
+              </tr>
+              <tr style="background-color: var(--warning-bg);">
+                <td class="font-bold">TRK-2139410220 <span class="material-symbols-outlined text-sm text-secondary ml-1">content_copy</span></td>
+                <td><span class="badge badge-primary" style="background: var(--primary); color: white;">Same Day</span></td>
+                <td>2026-09-17 09:10</td>
+                <td><span class="badge badge-warning" style="background: #fde047; border: none;"><span class="status-dot" style="background: var(--warning-text);"></span> 85 mins</span></td>
+                <td>Standard Queue</td>
+                <td style="text-align: right;">
+                  <button class="btn btn-outline text-xs mr-2">Set Priority</button>
+                  <button class="btn btn-primary text-xs" data-open-modal="modal-outbound-dispatch"><span class="material-symbols-outlined text-sm">local_shipping</span> Outbound Dispatch</button>
+                </td>
+              </tr>
+              <tr style="background-color: var(--success-bg);">
+                <td class="font-bold">TRK-2139410311 <span class="material-symbols-outlined text-sm text-secondary ml-1">content_copy</span></td>
+                <td><span class="badge badge-neutral" style="background: #f1f5f9; border: none;">Regular</span></td>
+                <td>2026-09-17 06:50</td>
+                <td><span class="badge badge-success" style="background: #bbf7d0; border: none;"><span class="status-dot" style="background: var(--success-text);"></span> 150 mins</span></td>
+                <td>Standard Queue</td>
+                <td style="text-align: right;">
+                  <button class="btn btn-outline text-xs mr-2">Set Priority</button>
+                  <button class="btn btn-primary text-xs" data-open-modal="modal-outbound-dispatch"><span class="material-symbols-outlined text-sm">local_shipping</span> Outbound Dispatch</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <footer class="panel-body flex justify-between items-center border-t" style="border-top: 1px solid var(--border-color);">
+          <div class="text-xs text-secondary">
+            Showing 6 of 24 parcels (Sorted by Priority Flag & Remaining SLA)
+          </div>
+          <div class="flex gap-4 text-xs text-secondary">
+            <span class="flex items-center gap-1"><span class="status-dot" style="background: var(--danger-text);"></span> Critical (<30m)</span>
+            <span class="flex items-center gap-1"><span class="status-dot" style="background: var(--warning-text);"></span> Warning (30-120m)</span>
+            <span class="flex items-center gap-1"><span class="status-dot" style="background: var(--success-text);"></span> Normal (>120m)</span>
+          </div>
+          <div class="flex gap-1">
+            <button class="btn btn-outline text-xs px-2 py-1">Previous</button>
+            <button class="btn btn-primary text-xs px-3 py-1">1</button>
+            <button class="btn btn-outline text-xs px-3 py-1">2</button>
+            <button class="btn btn-outline text-xs px-3 py-1">3</button>
+            <button class="btn btn-outline text-xs px-2 py-1">Next</button>
+          </div>
+        </footer>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- NATIVE HTML DIALOG MODAL -->
+  <dialog id="modal-outbound-dispatch">
+    <header class="modal-header">
+      <div class="flex items-center gap-3">
+        <div class="p-2 rounded-lg" style="background: var(--primary-fixed); color: var(--primary);">
+          <span class="material-symbols-outlined">local_shipping</span>
+        </div>
+        <div>
+          <h2 class="text-lg font-bold">Release Package Outbound</h2>
+          <p class="text-primary font-bold text-sm">TRK-2139410001 <span style="font-weight: 500;">(Priority Same Day)</span></p>
+        </div>
+      </div>
+      <button class="btn" data-close-modal aria-label="Close Modal">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </header>
+    <div class="modal-body">
+      
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="font-bold flex items-center gap-2"><span class="material-symbols-outlined text-primary">two_wheeler</span> Pilih Kurir Satria Siaga (Priority Dispatch)</h3>
+        <span class="badge badge-success rounded-full"><span class="status-dot pulse" style="background: var(--success-text);"></span> 4 Satria Standby</span>
+      </div>
+
+      <div class="flex-col gap-3 mb-4">
+        <!-- Option 1 -->
+        <label class="radio-card-label" style="border-color: var(--primary); background: var(--primary-fixed);">
+          <input type="radio" name="courier" class="radio-card-input" checked>
+          <div class="flex items-center gap-3 w-full">
+            <div class="profile-avatar" style="background: var(--primary); color: white;">SB</div>
+            <div class="flex-1">
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-on-surface">Satria Bayu</span>
+                <span class="badge badge-success">Ready Now</span>
+              </div>
+              <p class="text-xs text-secondary mt-1">Motor Fleet • Bay 02 • Berangkat est. 5 mnt</p>
+            </div>
+            <span class="material-symbols-outlined text-primary">check_circle</span>
+          </div>
+        </label>
+        
+        <!-- Option 2 -->
+        <label class="radio-card-label">
+          <input type="radio" name="courier" class="radio-card-input">
+          <div class="flex items-center gap-3 w-full">
+            <div class="profile-avatar" style="background: var(--surface-container-low); color: var(--secondary);">SD</div>
+            <div class="flex-1">
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-on-surface">Satria Dimas</span>
+                <span class="badge badge-neutral">Standby</span>
+              </div>
+            </div>
+            <div style="width: 24px; height: 24px; border: 2px solid var(--border-color); border-radius: 50%;"></div>
+          </div>
+        </label>
+
+        <!-- Option 3 -->
+        <label class="radio-card-label">
+          <input type="radio" name="courier" class="radio-card-input">
+          <div class="flex items-center gap-3 w-full">
+            <div class="profile-avatar" style="background: var(--surface-container-low); color: var(--secondary);">SF</div>
+            <div class="flex-1">
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-on-surface">Satria Fajar</span>
+                <span class="badge badge-neutral">Standby</span>
+              </div>
+            </div>
+            <div style="width: 24px; height: 24px; border: 2px solid var(--border-color); border-radius: 50%;"></div>
+          </div>
+        </label>
+      </div>
+
+      <div class="alert-warning" style="background: #fef2f2; border-color: #fca5a5; margin-bottom: 0;">
+        <div class="alert-icon" style="background: transparent; color: var(--danger-text); padding: 0;">
+          <span class="material-symbols-outlined">info</span>
+        </div>
+        <p class="text-sm" style="color: var(--danger-text);">Paket Priority Same Day ini akan langsung diserahkan ke Satria terpilih untuk pengantaran langsung ke penerima (Direct Last-Mile) guna mencegah breach SLA 18 menit tersisa.</p>
+      </div>
+
+    </div>
+    <footer class="modal-footer">
+      <button class="btn btn-outline" data-close-modal>Cancel</button>
+      <button class="btn btn-primary"><span class="material-symbols-outlined">local_shipping</span> Konfirmasi & Berangkatkan Satria</button>
+    </footer>
+  </dialog>
+
+</body>
+</html>
