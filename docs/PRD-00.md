@@ -1,92 +1,116 @@
-# 📄 Product Requirements Document (PRD)
-## Courier Admin Mini-Panel — SLA & Priority Signaling System
+# Product Requirements Document (PRD) v5.1
+## Courier Admin Mini-Panel: SLA & Priority Signaling System
+> **System Focus:** Mid-Mile Early Warning & Capacity Control System  
+> **Tech Stack:** React.js (Frontend) + Laravel REST API (Backend) + PostgreSQL + Redis + SSE  
+> **Target Release:** MVP 2 Bulan (Sprints 1–4)  
+> **Document Status:** `APPROVED FOR MVP`  
 
 ---
 
-### 1. Tujuan & Latar Belakang (Purpose & Background)
-Sistem **Courier Admin Mini-Panel** dikembangkan sebagai solusi operasional titik transit logistik (*mid-mile hub*) untuk mentransformasi manajemen antrean paket dari pendekatan konvensional **First-In-First-Out (FIFO)** menjadi **Dynamic Priority Queue System**.
-
-Sistem ini berfungsi sebagai *early warning system* berbasis sisa waktu Service Level Agreement (SLA) dan kapasitas fisik hub guna mencegah keterlambatan pengiriman (*SLA breach*) serta penumpukan paket (*over-capacity*) saat terjadi lonjakan volume pengiriman.
+## 📋 Table of Contents
+1. [Ringkasan Utama & Latar Belakang Produk](#1-ringkasan-utama--latar-belakang-produk)
+2. [Tantangan Operasional yang Diantisipasi & Skenario Risiko](#2-tantangan-operasional-yang-diantisipasi--skenario-risiko)
+3. [Profil Pengguna & Batasan Pengembangan (Scope Matrix)](#3-profil-pengguna--batasan-pengembangan-scope-matrix)
+4. [Daftar 6 Fitur Utama Phase 1 MVP & Acceptance Criteria](#4-daftar-6-fitur-utama-phase-1-mvp--acceptance-criteria)
+5. [Spesifikasi Antarmuka & Visual Signaling Standards](#5-spesifikasi-antarmuka--visual-signaling-standards)
+6. [Arsitektur Tech Stack & Roadmap Peluncuran MVP (2 Bulan)](#6-arsitektur-tech-stack--roadmap-peluncuran-mvp-2-bulan)
 
 ---
 
-### 2. Tantangan Operasional & Solusi Sistem
+## 1. Ringkasan Utama & Latar Belakang Produk
 
-| Tantangan Operasional | Solusi Sistem (PRD v5.1) |
+Dokumen **Product Requirements Document (PRD) v5.1** ini menetapkan spesifikasi produk mendasar bagi pengembangan sistem **Courier Admin Mini-Panel**. 
+
+Visi utama dari produk ini adalah mentransformasi pengelolaan antrean paket di titik transit logistik (*hub*) dari pendekatan statis konvensional **First-In-First-Out (FIFO)** menjadi **Dynamic Priority Queue System** berbasis sisa waktu SLA dan kapasitas fisik hub.
+
+Sistem ini dirancang dengan pendekatan **Multi-Tenant Multi-Hub Architecture**, di mana setiap Admin terisolasi pada `id_hub` tempatnya bertugas, didukung oleh pemicuan *real-time push signaling* via **Server-Sent Events (SSE)** untuk memantau beban kapasitas dan eskalasi keterlambatan paket.
+
+---
+
+## 2. Tantangan Operasional yang Diantisipasi & Skenario Risiko
+
+| Skenario Risiko Operasional | Antisipasi & Solusi Sistem (PRD v5.1) |
 | :--- | :--- |
-| **FIFO Bottleneck**: Paket ekspres/urgent tertumpuk di belakang antrean fisik. | **Dynamic SLA Queue Engine**: Mengurutkan antrean berdasarkan sisa menit SLA (`remaining_minutes`) & tombol manual *Priority Override*. |
-| **Over-Capacity Tanpa Visibilitas**: Admin hub tidak tahu volume paket yang sedang menuju hub-nya (`in_transit`). | **Dual-Metric & Threshold Control**: Menampilkan akumulasi beban (`In Hub` + `In Transit`) dan batas persentase kapasitas hub. |
-| **Keterlambatan Respon Intervensi**: Admin terlambat mengeksekusi penanganan khusus. | **Event-Driven Push Signaling (SSE)**: Pemicuan notifikasi otomatis secara *real-time* via Server-Sent Events (SSE) saat transaksi *outbound dispatch* berpotensi melebihi kapasitas Hub tujuan. |
+| **Risiko Keterlambatan Paket Urgent (FIFO Bottleneck)**<br>Saat volume tinggi, paket layanan ekspres (*Same Day*) berpotensi tertumpuk di barisan belakang antrean penyortiran fisik. | **Dynamic SLA Sorting Engine**<br>Menghitung sisa menit batas waktu SLA (`remaining_minutes`) secara otomatis dan menempatkan paket paling mendekati *deadline* di urutan teratas antrean. |
+| **Risiko Over-Capacity Tanpa Peringatan**<br>Admin hub tidak memiliki visibilitas atas paket yang sedang dalam perjalanan (`In Transit`) menuju hub-nya sehingga hub berisiko melampaui daya tampung fisik. | **In-Transit Visibility & Threshold Control**<br>Menampilkan kalkulasi total beban (`In Hub` + `In Transit`) dan memicu sinyal peringatan jika melampaui `max_capacity` hub. |
+| **Risiko Keterlambatan Respon Intervensi**<br>Admin terlambat mengeksekusi penanganan khusus pada paket bermasalah karena tidak adanya notifikasi otomatis. | **Event-Driven SSE Push Signaling**<br>Bus sinyal memancarkan 3 event SSE utama (`INBOUND_ARRIVAL_SIGNAL`, `CAPACITY_LOAD_ALERT`, `SLA_BREACH_WARNING`) langsung ke antarmuka Admin. |
 
 ---
 
-### 3. Profil Pengguna (User Personas)
+## 3. Profil Pengguna & Batasan Pengembangan (Scope Matrix)
 
-* **Admin Hub / Head of Warehouse Operations**:
-  * **Kebutuhan Utama**: Dashboard operasional tunggal yang fokus, responsif, dan memberikan visibilitas penuh atas antrean paket, status sisa menit SLA, kapasitas hub, serta aksi rilis/dispatch paket (*Transfer to Next Hub* atau *Send to Customer*).
+### 3.1 Personas
+* **Admin Hub / Head of Warehouse Operations:** Bekerja di area transit untuk memantau beban paket, melakukan konfirmasi penerimaan truk *inbound*, mengeksekusi *Priority Override*, dan mengelola *Outbound Dispatch*.
+* **Operator Gudang:** Memproses pemindahan paket fisik ke Kurir Satria.
 
-*(Catatan: Pengelolaan akun Admin & Hub dilakukan via DB Seeder / Script untuk fase MVP).*
+### 3.2 MVP Scope Matrix (Phase 1 vs Phase 2)
 
----
+#### 🟢 Phase 1: In-Scope (MVP 2 Bulan Target - 6 Fitur Utama)
+1. **`F-01`**: Autentikasi NIK / ID Operator & Penguncian Sesi Multi-Hub (Pre-setup accounts).
+2. **`F-02`**: **Manifest Data Generator** (Draft `MNF-YYMM-XXXX`, Auto-Vehicle Determination, Transactional Bulk Insert).
+3. **`F-03`**: **Dynamic SLA Queue Table & Dashboard Operations** (Dual-Metric Aggregator, Priority Sorting, 3-Color SLA Badge, Quick Release Handover Kurir Satria).
+4. **`F-04`**: **Outbound Dispatch Action & Fleet Management** (Manifes `OUTBOUND_DISPATCH`, Kurir Standby, Aksi Berangkatkan pemicu rilis kapasitas Hub).
+5. **`F-05`**: **Event-Driven Real-Time SSE Signaling Engine** (Spesifikasi 3 Event JSON Contract & UI Handling).
+6. **`F-06`**: **Inbound Sorting & Fleet Acknowledgment (ACK)** (Rigid Capacity Check, Bulk Mutation ke `In Hub`, SLA Timestamp calculation).
 
-### 4. Skala & Batasan Pengembangan (Scope & Scale)
-
-#### **Phase 1: MVP (5 Fitur Utama — Target 2 Bulan)**
-Hanya ada **Satu Dashboard Utama** (Admin Hub Dashboard) yang mencakup 5 fitur inti:
-
-1. **Autentikasi & Sesi Multi-Admin / Multi-Hub**: Login terikat pada `id_admin` dan `id_hub`, mendukung relasi 1 Hub dapat diakses oleh banyak Admin dengan isolasi data penuh.
-2. **Dashboard Admin Hub & Monitoring Dual-Metrik**: Monitoring jumlah paket **In Hub** (di gudang) dan **In Transit** (akan datang), serta gauge kapasitas hub.
-3. **Dynamic SLA Queue Table & Priority Override**: Tabel antrean terurut otomatis berdasarkan sisa menit SLA terdekat & tombol *Priority Override*.
-4. **Outbound Dispatch Action**: Modal rilis paket dengan 2 pilihan opsi: *Transfer to Next Hub* atau *Send to Customer (Last-Mile)*.
-5. **Event-Driven Real-Time SSE Capacity Signaling**: Pemicuan notifikasi SSE *instant* saat transaksi *dispatch* antar-hub berpotensi melampaui `max_capacity` Hub tujuan.
-
-#### **Phase 2: Post-MVP Expansion**
-* Panel Manajemen Super Admin UI (Create Hub & Assign Admin via Web UI).
-* Background CronJob Scheduler (Periodic Scan & Automated SLA Decay Alert).
-* Modul Penugasan Kurir Last-Mile & Optimasi Rute.
+#### 🔴 Phase 2: Post-MVP Expansion (Future Release)
+1. Panel UI Kelola Super Admin (Create Hub, Assign Admin UI).
+2. Penugasan kurir *last-mile* berbasis *GPS Live Tracking*.
+3. Algoritma *Smart Routing* berbasis koordinat alamat pemesan.
 
 ---
 
-### 5. Daftar Fitur Utama & Acceptance Criteria (Phase 1 MVP)
+## 4. Daftar 6 Fitur Utama Phase 1 MVP & Acceptance Criteria
 
-#### **F-01: Autentikasi & Sesi Multi-Admin / Multi-Hub**
-* **User Story**: Sebagai Admin Hub, saya ingin login dan langsung masuk ke dashboard hub tempat saya bertugas agar data yang saya kelola tidak tertukar dengan hub lain.
-* **Acceptance Criteria**:
-  * [x] Login berhasil jika kredensial valid dan mengembalikan token sesi terikat `id_admin` dan `id_hub`.
-  * [x] Admin dari Hub A tidak dapat melihat data atau menerima sinyal SSE dari Hub B.
-  * [x] Banyak Admin dapat login bersamaan di Hub yang sama.
+### `F-01` Autentikasi NIK / ID Operator & Penguncian Sesi Multi-Hub
+* [x] Login menggunakan NIK / ID Operator + Password (akun pre-setup oleh admin).
+* [x] Sesi terikat secara eksplisit pada `assigned_hub_id`.
 
-#### **F-02: Dashboard Admin Hub & Monitoring Dual-Metrik**
-* **User Story**: Sebagai Admin Hub, saya ingin melihat statistik paket di gudang dan paket yang akan datang agar dapat mengantisipasi beban kerja hub.
-* **Acceptance Criteria**:
-  * [x] Menampilkan statistik paket `In Hub` (`status = 'in_hub'`).
-  * [x] Menampilkan statistik paket `In Transit` (`status = 'in_transit'` dengan tujuan hub ini).
-  * [x] Indikator kapasitas Hub menampilkan persentase `Total_Load / max_capacity` dengan warna dinamis (Hijau <80%, Kuning 80-99%, Merah ≥100%).
+### `F-02` Manifest Data Generator
+* [x] Men-generate kode draf `MNF-YYMM-XXXX` dan menentukan jenis armada secara otomatis (<30 paket = Blind Van, 31-50 paket = Truk Engkel, >50 paket = Truk Besar).
+* [x] Bulk insert transaksional (`DB::transaction`) menyuntikkan paket status `in_transit`.
 
-#### **F-03: Dynamic SLA Queue Table & Priority Override**
-* **User Story**: Sebagai Admin Hub, saya ingin antrean paket terurut otomatis berdasarkan sisa menit SLA terdekat dan bisa menaikkan prioritas paket secara manual.
-* **Acceptance Criteria**:
-  * [x] Antrean terurut otomatis dengan logika: Paket `is_priority = TRUE` paling atas, diikuti `remaining_minutes` terkecil.
-  * [x] Setiap baris memiliki badge sisa menit SLA yang terus berjalan dinamis.
-  * [x] Tombol *Priority Override* dapat mengubah status `is_priority` menjadi `TRUE` secara instan.
+### `F-03` Dynamic SLA Queue Table & Dashboard Operations
+* [x] Pengurutan antrean: `is_priority = TRUE` teratas, dilanjutkan sisa SLA dari terkecil ke terbesar.
+* [x] Visual SLA Badge: Merah (<30m), Kuning (30-120m), Hijau (>120m).
+* [x] Quick Release Handover ke Kurir Satria Standby membebaskan slot kapasitas Hub.
 
-#### **F-04: Outbound Dispatch Action**
-* **User Story**: Sebagai Admin Hub, saya ingin memproses rilis paket keluar dari hub baik untuk diteruskan ke hub berikutnya maupun dikirimkan ke customer.
-* **Acceptance Criteria**:
-  * [x] Memiliki modal rilis paket dengan opsi **Transfer to Next Hub** (pilih Hub tujuan) atau **Send to Customer**.
-  * [x] Jika memilih *Transfer to Next Hub*, status paket berubah dari `in_hub` menjadi `in_transit` dengan `next_hub_id` ter-update.
-  * [x] Jika memilih *Send to Customer*, status paket berubah menjadi `out_for_delivery` dan berkurang dari beban hub.
+### `F-04` Outbound Dispatch Action & Fleet Management
+* [x] Aksi "Berangkatkan" merilis beban kapasitas fisik Hub secara instan.
+* [x] Aksi "Selesai" mengubah status seluruh paket di dalamnya menjadi `Delivered`.
 
-#### **F-05: Event-Driven Real-Time SSE Capacity Signaling**
-* **User Story**: Sebagai Admin Hub, saya ingin menerima notifikasi instan jika paket yang dikirim dari hub lain membuat kapasitas hub saya melampaui batas.
-* **Acceptance Criteria**:
-  * [x] Ketika Admin Hub A melakukan *dispatch* paket ke Hub B dan membuat `Total_Load` Hub B > `max_capacity`, backend langsung memicu pesan SSE ke channel Hub B.
-  * [x] Toast alert / Pop-up modal muncul di layar Admin Hub B secara *real-time* (< 1 detik) tanpa perlu refresh browser.
+### `F-05` Event-Driven Real-Time SSE Capacity Signaling
+* [x] Sinyal `INBOUND_ARRIVAL_SIGNAL` memperbarui widget truk inbound & toast notification.
+* [x] Sinyal `CAPACITY_LOAD_ALERT` menggerakkan gauge meter kapasitas secara live (naik/turun).
+* [x] Sinyal `SLA_BREACH_WARNING` memperbarui badge angka merah di sidebar dan memicu tombol saran refresh antrean.
+
+### `F-06` Inbound Sorting & Fleet Acknowledgment (ACK)
+* [x] Rigid Capacity Check: menolak ACK jika `(In Hub + Manifest) > max_capacity`.
+* [x] Bulk Mutation: mengubah paket `In Transit` menjadi `In Hub` dan mengkalkulasi `sla_deadline`.
 
 ---
 
-### 6. Indikator Keberhasilan Produk (Product KPIs)
+## 5. Spesifikasi Antarmuka & Visual Signaling Standards
 
-1. **Zero Unnoticed Over-Capacity**: 100% kondisi potensi *over-capacity* terdeteksi dan ter-signal via SSE secara *real-time*.
-2. **SLA Breach Reduction**: Penurunan angka keterlambatan SLA paket Same Day & Next Day hingga 40%.
-3. **Dispatch Speed**: Peningkatan kecepatan rilis paket antrean kritis di hub hingga 30%.
+### 5.1 Visual Signaling Standard
+* 🟢 **HIJAU (Safe Zone):** Sisa SLA > 120 menit & Kapasitas Hub < 80%. Status operasional normal.
+* 🟡 **KUNING (Warning Zone):** Sisa SLA 30–120 menit OR Kapasitas Hub 80%–99%. Membutuhkan perhatian Admin.
+* 🔴 **MERAH (Critical / Overdue):** Sisa SLA < 30 menit OR Kapasitas Hub ≥ 100%. Memicu alert SSE & butuh intervensi segera.
+
+---
+
+## 6. Arsitektur Tech Stack & Roadmap Peluncuran MVP (2 Bulan)
+
+```mermaid
+gantt
+    title PRD MVP Implementation Roadmap (8 Weeks)
+    dateFormat  YYYY-MM-DD
+    section Sprint 1
+    DB Schema & Auth (NIK/ID)        :a1, 2026-10-01, 14d
+    section Sprint 2
+    Manifest Generator & SLA Engine  :a2, 2026-10-15, 14d
+    section Sprint 3
+    Inbound ACK & Outbound Dispatch  :a3, 2026-10-29, 14d
+    section Sprint 4
+    SSE Signaling Bus & UAT Testing  :a4, 2026-11-12, 14d
+```
