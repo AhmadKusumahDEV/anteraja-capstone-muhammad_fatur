@@ -1,0 +1,142 @@
+// DBML (Database Markup Language) for dbdiagram.io
+// Copy and paste this directly into https://dbdiagram.io/d
+
+Enum user_role {
+  HUB_ADMIN
+  SUPER_ADMIN
+}
+
+Enum courier_fleet_type {
+  MOTORCYCLE
+  VAN
+}
+
+Enum courier_status {
+  STANDBY
+  ON_DUTY
+  OFFLINE
+}
+
+Enum manifest_type {
+  INBOUND_FEEDER
+  OUTBOUND_DISPATCH
+}
+
+Enum manifest_status {
+  MENUNGGU_KEDATANGAN
+  MENUNGGU_KONFIRMASI
+  SUDAH_DITERIMA
+  SIAP_BERANGKAT
+  DALAM_PENGANTARAN
+  SELESAI
+}
+
+Enum service_level {
+  SAME_DAY
+  NEXT_DAY
+  REGULAR
+}
+
+Enum package_status {
+  IN_TRANSIT
+  IN_HUB
+  OUT_FOR_DELIVERY
+  DELIVERED
+}
+
+Enum dispatch_status {
+  PENDING_ACCEPT
+  ACCEPTED
+  TIMEOUT_FAILED
+}
+
+Table hubs {
+  id varchar(50) [primary key, note: 'Contoh: HUB-JKS-01']
+  name varchar(255) [not null, note: 'Contoh: Jakarta Selatan Transit Hub']
+  region_name varchar(100) [not null, note: 'Contoh: Jakarta Selatan']
+  location_tag varchar(50) [not null, note: 'Contoh: Jaksel']
+  max_capacity int [not null, note: 'Contoh: 200']
+  timezone varchar(50) [not null, note: 'Contoh: WIB (UTC+7)']
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+Table users {
+  id varchar(50) [primary key]
+  nik varchar(50) [unique, not null, note: 'Contoh: ADM-102']
+  name varchar(255) [not null, note: 'Contoh: Admin Budi']
+  role user_role [not null]
+  hub_id varchar(50)
+  password_hash text [not null]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+Table couriers {
+  id varchar(50) [primary key, note: 'Contoh: SAT-001']
+  name varchar(255) [not null, note: 'Contoh: Satria Bayu']
+  fleet_type courier_fleet_type [not null]
+  status courier_status [not null]
+  current_hub_id varchar(50) [note: 'Tempat mangkal saat ini (Nullable)']
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+Table manifests {
+  manifest_code varchar(50) [primary key, note: 'Contoh: MNF-INB-2026-0917-01']
+  type manifest_type [not null]
+  origin_hub_id varchar(50) [not null]
+  destination_hub_id varchar(50) [note: 'Rute last-mile langsung ke pelanggan (Nullable)']
+  vehicle_plate varchar(20)
+  vehicle_type varchar(50)
+  status manifest_status [not null]
+  eta_timestamp timestamp
+  operator_id varchar(50) [note: 'Sesuai kebijakan MVP (Nullable)']
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+Table packages {
+  tracking_id varchar(50) [primary key, note: 'Contoh: TRK-2139410001']
+  current_hub_id varchar(50) [not null]
+  destination_area varchar(255) [note: 'Dummy Routing MVP (Contoh: Jakarta Selatan)']
+  service_type service_level [not null]
+  weight decimal(10,2) [not null, note: 'Contoh: 1.20']
+  status package_status [not null]
+  hub_arrival_timestamp timestamp [note: 'Titik mulai indikator SLA di hub']
+  sla_deadline timestamp [note: 'Batas waktu mutlak SLA']
+  is_priority boolean [default: false]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+Table manifest_packages {
+  id bigserial [primary key]
+  manifest_code varchar(50)
+  tracking_id varchar(50)
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+Table courier_dispatches {
+  dispatch_id varchar(50) [primary key]
+  courier_id varchar(50) [not null]
+  manifest_code varchar(50) [not null]
+  acceptance_timeout_minutes int [not null, note: 'Contoh: 5, 10']
+  status dispatch_status [not null]
+  dispatched_at timestamp
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+// Relasi (Foreign Keys)
+Ref: users.hub_id > hubs.id
+Ref: couriers.current_hub_id > hubs.id
+Ref: manifests.origin_hub_id > hubs.id
+Ref: manifests.destination_hub_id > hubs.id
+Ref: manifests.operator_id > users.id
+Ref: packages.current_hub_id > hubs.id
+Ref: manifest_packages.manifest_code > manifests.manifest_code
+Ref: manifest_packages.tracking_id > packages.tracking_id
+Ref: courier_dispatches.courier_id > couriers.id
+Ref: courier_dispatches.manifest_code > manifests.manifest_code
