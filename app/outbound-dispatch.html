@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anteraja Hub Admin - Outbound Dispatch</title>
+  <meta name="description" content="Dashboard pemantauan outbound dispatch dan handover kurir.">
+  
+  <!-- Font & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,500,0,0&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="styles.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+
+  <!-- HEADER UTAMA -->
+  <header class="app-header">
+    <div class="brand-area">
+      <img alt="Anteraja Logo" src="../src/logo.png">
+      <span class="badge badge-primary">HUB ADMIN</span>
+    </div>
+    
+    <div class="header-actions">
+      <div class="header-info-pill">
+        <span class="material-symbols-outlined text-sm">location_on</span>
+        HUB-JKS-01 • Jaksel
+      </div>
+      <div class="header-info-pill">
+        <span class="material-symbols-outlined text-sm">schedule</span>
+        00:30:48 WIB
+      </div>
+      <button class="btn btn-outline" style="border-radius: 999px; padding: 0.5rem;" aria-label="Notifications">
+        <span class="material-symbols-outlined">notifications</span>
+      </button>
+      <button class="btn btn-primary rounded-full">
+        <span class="material-symbols-outlined">bolt</span> Quick Dispatch
+      </button>
+    </div>
+  </header>
+
+  <div class="app-body">
+    
+    <!-- SIDEBAR -->
+    <aside class="sidebar" aria-label="Sidebar Navigation">
+      <div class="sidebar-top">
+        <div class="profile-card">
+          <div class="profile-avatar">J4</div>
+          <div>
+            <p class="font-bold text-sm">Hub JKT-04</p>
+            <p class="text-xs text-secondary flex items-center gap-1">
+              <span class="status-dot pulse" style="background-color: var(--success-text);"></span> Active Session • Live
+            </p>
+          </div>
+        </div>
+
+        <nav class="side-nav">
+          <a href="inbound-sorting.html">
+            <span class="nav-label"><span class="material-symbols-outlined">inbox</span> Inbound Sorting</span>
+          </a>
+          <a href="sla-queue.html">
+            <span class="nav-label"><span class="material-symbols-outlined">timer</span> SLA Queue</span>
+          </a>
+          <a href="outbound-dispatch.html" class="active">
+            <span class="nav-label"><span class="material-symbols-outlined">local_shipping</span> Outbound Dispatch</span>
+          </a>
+          <a href="manifest-generator.html">
+            <span class="nav-label"><span class="material-symbols-outlined">description</span> Manifest Generator</span>
+          </a>
+        </nav>
+      </div>
+      
+      <div class="sidebar-bottom">
+        <div class="profile-card" style="background-color: transparent; border: none; padding: 0; margin-bottom: 0;">
+          <div class="profile-avatar" style="background-color: var(--primary-fixed); color: var(--primary);">AB</div>
+          <div>
+            <p class="font-bold text-sm">Admin Budi</p>
+            <p class="text-xs text-secondary">ID: ADM-102 • Hub Operator</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+      <header class="page-header">
+        <p class="breadcrumb">Operasional / HUB-JKS-01 / <span class="text-primary font-bold">Pengiriman Kurir Keluar (Outbound)</span></p>
+        <h1 class="text-2xl font-bold mt-2">Pengiriman Keluar & Serah Terima Kurir</h1>
+        <p class="text-sm text-secondary mt-1">Pantau kesiapan batch pengiriman, keberangkatan kurir Satria, dan serah terima paket ke kurir.</p>
+      </header>
+
+      <!-- METRICS GRID -->
+      <section class="stats-grid mb-6" style="margin-bottom: 1.5rem;">
+        <article class="panel">
+          <div class="panel-body flex flex-col justify-between" style="height: 100%;">
+            <div class="flex justify-between items-start mb-4">
+              <div>
+                <p class="text-xs font-semibold text-secondary uppercase mb-1">Armada Kurir Aktif</p>
+                <div class="flex items-baseline gap-2">
+                  <span class="text-2xl font-bold">8</span>
+                  <span class="text-sm text-secondary">Kurir Satria Hadir</span>
+                </div>
+              </div>
+              <div class="p-3 rounded-lg" style="background: var(--success-bg); color: var(--success-text);">
+                <span class="material-symbols-outlined text-2xl">local_shipping</span>
+              </div>
+            </div>
+            <div class="text-xs text-success font-semibold flex items-center gap-1" style="color: var(--success-text); border-top: 1px solid var(--border-color); padding-top: 0.5rem;">
+              <span class="status-dot" style="background: var(--success-text);"></span> Siap Bertugas & Terjadwal
+            </div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-body flex flex-col justify-between" style="height: 100%;">
+            <div class="flex justify-between items-start mb-4">
+              <div>
+                <p class="text-xs font-semibold text-secondary uppercase mb-1">Siap Berangkat</p>
+                <div class="flex items-baseline gap-2">
+                  <span class="text-2xl font-bold">2</span>
+                  <span class="text-sm text-secondary">Batch (32 Paket)</span>
+                </div>
+              </div>
+              <div class="p-3 rounded-lg" style="background: var(--warning-bg); color: var(--warning-text);">
+                <span class="material-symbols-outlined text-2xl">departure_board</span>
+              </div>
+            </div>
+            <div class="text-xs font-semibold flex items-center gap-1" style="color: var(--warning-text); border-top: 1px solid var(--border-color); padding-top: 0.5rem;">
+              <span class="status-dot pulse" style="background: var(--warning-text);"></span> Menunggu Keberangkatan
+            </div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-body flex flex-col justify-between" style="height: 100%;">
+            <div class="flex justify-between items-start mb-4">
+              <div>
+                <p class="text-xs font-semibold text-secondary uppercase mb-1">Dalam Pengantaran</p>
+                <div class="flex items-baseline gap-2">
+                  <span class="text-2xl font-bold">0</span>
+                  <span class="text-sm text-secondary">Batch (20 Paket)</span>
+                </div>
+              </div>
+              <div class="p-3 rounded-lg" style="background: var(--info-bg); color: var(--info-text);">
+                <span class="material-symbols-outlined text-2xl">route</span>
+              </div>
+            </div>
+            <div class="text-xs font-semibold flex items-center gap-1" style="color: var(--info-text); border-top: 1px solid var(--border-color); padding-top: 0.5rem;">
+              <span class="status-dot" style="background: var(--info-text);"></span> Sedang Mengantar di Rute
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- ACTIVE DISPATCH BATCHES -->
+      <section class="panel">
+        <header class="panel-header">
+          <div>
+            <h2 class="text-lg font-bold">Active Dispatch Batches</h2>
+            <p class="text-sm text-secondary mt-1">Kelola dan berangkatkan batch kurir outbound secara real-time</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="flex items-center border rounded-lg px-3 py-2" style="background: white;">
+              <span class="material-symbols-outlined text-secondary text-sm mr-2">search</span>
+              <input type="text" placeholder="Cari Kurir / Manifest..." style="border: none; outline: none; font-size: 0.875rem; background: transparent; width: 200px;">
+            </div>
+            <button class="btn btn-primary" data-open-modal="modal-create-batch"><span class="material-symbols-outlined text-sm">add_circle</span> Buat Batch Dispatch</button>
+          </div>
+        </header>
+
+        <div class="panel-body">
+          <div class="courier-grid">
+            
+            <!-- Courier Card 1 -->
+            <article class="panel shadow-sm">
+              <header class="p-4 flex justify-between items-center border-b" style="border-bottom: 1px solid var(--border-color);">
+                <h3 class="font-bold">Satria Ahmad</h3>
+                <span class="badge badge-warning rounded-full"><span class="status-dot pulse" style="background: var(--warning-text);"></span> Siap Berangkat</span>
+              </header>
+              <div class="p-4">
+                <div class="flex justify-between items-center border rounded-lg p-3 mb-4" style="background: var(--surface);">
+                  <div class="flex items-center gap-2 font-mono text-sm">
+                    <span class="material-symbols-outlined text-secondary text-sm">description</span> MNF-2408-01
+                  </div>
+                  <div class="text-sm"><span class="text-secondary">Muatan:</span> <strong class="font-bold">18 Paket</strong></div>
+                </div>
+                <div class="flex justify-end">
+                  <button class="btn btn-primary w-full justify-center"><span class="material-symbols-outlined text-sm">local_shipping</span> Berangkatkan</button>
+                </div>
+              </div>
+            </article>
+
+            <!-- Courier Card 2 -->
+            <article class="panel shadow-sm" style="opacity: 0.7; background: var(--surface);">
+              <header class="p-4 flex justify-between items-center border-b" style="border-bottom: 1px solid var(--border-color);">
+                <h3 class="font-bold">Satria Reza</h3>
+                <span class="badge badge-success rounded-full"><span class="material-symbols-outlined text-sm">check_circle</span> Selesai</span>
+              </header>
+              <div class="p-4">
+                <div class="flex justify-between items-center border rounded-lg p-3 mb-4" style="background: var(--surface-container-lowest);">
+                  <div class="flex items-center gap-2 font-mono text-sm">
+                    <span class="material-symbols-outlined text-secondary text-sm">description</span> MNF-2408-02
+                  </div>
+                  <div class="text-sm"><span class="text-secondary">Muatan:</span> <strong class="font-bold">20 Paket</strong></div>
+                </div>
+                <div class="flex justify-end">
+                  <button class="btn btn-outline w-full justify-center text-success" disabled style="color: var(--success-text); border-color: transparent;"><span class="material-symbols-outlined text-sm">done_all</span> Telah Selesai</button>
+                </div>
+              </div>
+            </article>
+
+            <!-- Courier Card 3 -->
+            <article class="panel shadow-sm">
+              <header class="p-4 flex justify-between items-center border-b" style="border-bottom: 1px solid var(--border-color);">
+                <h3 class="font-bold">Satria Doni</h3>
+                <span class="badge badge-warning rounded-full"><span class="status-dot pulse" style="background: var(--warning-text);"></span> Siap Berangkat</span>
+              </header>
+              <div class="p-4">
+                <div class="flex justify-between items-center border rounded-lg p-3 mb-4" style="background: var(--surface);">
+                  <div class="flex items-center gap-2 font-mono text-sm">
+                    <span class="material-symbols-outlined text-secondary text-sm">description</span> MNF-2408-03
+                  </div>
+                  <div class="text-sm"><span class="text-secondary">Muatan:</span> <strong class="font-bold">14 Paket</strong></div>
+                </div>
+                <div class="flex justify-end">
+                  <button class="btn btn-primary w-full justify-center" style="background: var(--primary);"><span class="material-symbols-outlined text-sm">local_shipping</span> Berangkatkan</button>
+                </div>
+              </div>
+            </article>
+
+            <!-- Courier Card 4 -->
+            <article class="panel shadow-sm" style="opacity: 0.7; background: var(--surface);">
+              <header class="p-4 flex justify-between items-center border-b" style="border-bottom: 1px solid var(--border-color);">
+                <h3 class="font-bold">Satria Hendra</h3>
+                <span class="badge badge-success rounded-full"><span class="material-symbols-outlined text-sm">check_circle</span> Selesai</span>
+              </header>
+              <div class="p-4">
+                <div class="flex justify-between items-center border rounded-lg p-3 mb-4" style="background: var(--surface-container-lowest);">
+                  <div class="flex items-center gap-2 font-mono text-sm">
+                    <span class="material-symbols-outlined text-secondary text-sm">description</span> MNF-2408-04
+                  </div>
+                  <div class="text-sm"><span class="text-secondary">Muatan:</span> <strong class="font-bold">26 Paket</strong></div>
+                </div>
+                <div class="flex justify-end">
+                  <button class="btn btn-outline w-full justify-center text-success" disabled style="color: var(--success-text); border-color: transparent;"><span class="material-symbols-outlined text-sm">done_all</span> Telah Selesai</button>
+                </div>
+              </div>
+            </article>
+
+          </div>
+        </div>
+
+        <footer class="panel-body flex justify-between items-center border-t" style="border-top: 1px solid var(--border-color);">
+          <div class="text-xs text-secondary">Menampilkan 4 dari 12 batch kurir (Halaman 1 dari 3)</div>
+          <div class="flex gap-1">
+            <button class="btn btn-outline text-xs px-2 py-1"><span class="material-symbols-outlined text-sm">chevron_left</span> Sebelumnya</button>
+            <button class="btn btn-primary text-xs px-3 py-1">1</button>
+            <button class="btn btn-outline text-xs px-3 py-1">2</button>
+            <button class="btn btn-outline text-xs px-3 py-1">3</button>
+            <button class="btn btn-outline text-xs px-2 py-1">Berikutnya <span class="material-symbols-outlined text-sm">chevron_right</span></button>
+          </div>
+        </footer>
+      </section>
+    </main>
+  </div>
+
+  <!-- MODAL: BUAT BATCH DISPATCH BARU -->
+  <dialog id="modal-create-batch">
+    <header class="modal-header">
+      <div class="flex items-center gap-3">
+        <div class="p-2 rounded-lg" style="background: var(--primary-fixed); color: var(--primary);">
+          <span class="material-symbols-outlined">local_shipping</span>
+        </div>
+        <div>
+          <h2 class="text-lg font-bold">Buat Batch Dispatch Baru</h2>
+          <p class="text-secondary text-sm">Tugaskan kurir Satria, pilih manifest muatan paket, dan jadwalkan waktu keberangkatan.</p>
+        </div>
+      </div>
+      <button class="btn" data-close-modal aria-label="Close Modal">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </header>
+    <div class="modal-body">
+      
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="font-bold flex items-center gap-2 text-sm"><span class="material-symbols-outlined text-primary text-sm">person</span> Pilih Kurir Satria Ditugaskan</h3>
+        <span class="badge badge-success rounded-full"><span class="status-dot pulse" style="background: var(--success-text);"></span> 4 Satria Standby</span>
+      </div>
+
+      <div class="border rounded-lg p-3 mb-6 flex justify-between items-center" style="background: var(--primary-fixed); border-color: var(--primary);">
+        <div class="flex items-center gap-3">
+          <div class="profile-avatar" style="background: var(--primary); color: white;">SB</div>
+          <div>
+            <div class="font-bold">Satria Bayu</div>
+            <div class="text-xs text-primary flex items-center gap-1 mt-1"><span class="material-symbols-outlined text-xs">two_wheeler</span> Motor Fleet • Bay 02</div>
+          </div>
+        </div>
+        <span class="material-symbols-outlined text-primary">check</span>
+      </div>
+
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="font-bold flex items-center gap-2 text-sm"><span class="material-symbols-outlined text-primary text-sm">inventory_2</span> Pilih Paket Siap Kirim</h3>
+        <div class="flex items-center gap-3">
+          <span class="badge badge-primary rounded-full">3 dari 18 Paket Dipilih</span>
+          <span class="text-primary font-bold text-sm cursor-pointer">Pilih Semua</span>
+        </div>
+      </div>
+
+      <div class="flex items-center border rounded-lg px-3 py-2 mb-4" style="background: white;">
+        <span class="material-symbols-outlined text-secondary text-sm mr-2">search</span>
+        <input type="text" placeholder="Cari Resi (TRK-...) atau Area Tujuan..." style="border: none; outline: none; font-size: 0.875rem; background: transparent; width: 100%;">
+        <span class="text-xs text-secondary ml-auto whitespace-nowrap">Sortir: <strong>Prioritas SLA</strong></span>
+      </div>
+
+      <div class="flex-col gap-2 mb-4" style="max-height: 200px; overflow-y: auto;">
+        <!-- Pkt 1 -->
+        <label class="flex items-center justify-between border rounded-lg p-3 cursor-pointer" style="border-color: var(--primary); background: var(--surface-container-lowest);">
+          <div class="flex items-center gap-3">
+            <input type="checkbox" checked style="accent-color: var(--primary); width: 1.25rem; height: 1.25rem;">
+            <div class="font-bold text-sm">TRK-2139410001</div>
+            <span class="badge badge-warning" style="background: #fef08a; border:none; font-size: 0.65rem;">Same Day</span>
+            <span class="badge badge-success" style="background: #bbf7d0; border:none; font-size: 0.65rem;">SLA: 45 mnt</span>
+          </div>
+          <span class="text-primary font-bold text-xs">Siap Muat</span>
+        </label>
+
+        <!-- Pkt 2 -->
+        <label class="flex items-center justify-between border rounded-lg p-3 cursor-pointer" style="border-color: var(--primary); background: var(--surface-container-lowest);">
+          <div class="flex items-center gap-3">
+            <input type="checkbox" checked style="accent-color: var(--primary); width: 1.25rem; height: 1.25rem;">
+            <div class="font-bold text-sm">TRK-2139410084</div>
+            <span class="badge badge-info" style="background: #e0f2fe; border:none; font-size: 0.65rem;">Next Day</span>
+            <span class="badge badge-success" style="background: #bbf7d0; border:none; font-size: 0.65rem;">SLA: 120 mnt</span>
+          </div>
+          <span class="text-primary font-bold text-xs">Siap Muat</span>
+        </label>
+        
+        <!-- Pkt 3 -->
+        <label class="flex items-center justify-between border rounded-lg p-3 cursor-pointer" style="border-color: var(--primary); background: var(--surface-container-lowest);">
+          <div class="flex items-center gap-3">
+            <input type="checkbox" checked style="accent-color: var(--primary); width: 1.25rem; height: 1.25rem;">
+            <div class="font-bold text-sm">TRK-2139410192</div>
+            <span class="badge badge-warning" style="background: #fef08a; border:none; font-size: 0.65rem;">Same Day</span>
+            <span class="badge badge-success" style="background: #bbf7d0; border:none; font-size: 0.65rem;">SLA: 60 mnt</span>
+          </div>
+          <span class="text-primary font-bold text-xs">Siap Muat</span>
+        </label>
+
+        <!-- Pkt 4 -->
+        <label class="flex items-center justify-between border rounded-lg p-3 cursor-pointer" style="background: var(--surface);">
+          <div class="flex items-center gap-3">
+            <input type="checkbox" style="width: 1.25rem; height: 1.25rem;">
+            <div class="font-bold text-sm text-secondary">TRK-2139410245</div>
+            <span class="badge badge-neutral" style="font-size: 0.65rem; border:none;">Regular</span>
+            <span class="badge badge-info" style="font-size: 0.65rem; border:none; opacity: 0.7;">SLA: 180 mnt</span>
+          </div>
+          <span class="text-secondary font-bold text-xs">Antrean Hub</span>
+        </label>
+      </div>
+
+      <div class="rounded-lg p-4 flex justify-between items-center" style="background: var(--primary-fixed);">
+        <div class="flex items-center gap-3">
+          <div class="p-2 rounded bg-primary" style="background: var(--primary); color: white;"><span class="material-symbols-outlined text-sm">local_shipping</span></div>
+          <div>
+            <div class="font-bold text-sm">Ringkasan Batch: Satria Bayu</div>
+            <div class="text-xs text-secondary mt-1">Total Siap Outbound: <strong style="color: var(--primary);">3 Paket Dipilih</strong></div>
+          </div>
+        </div>
+        <div class="font-bold text-lg text-primary">3 Paket</div>
+      </div>
+
+    </div>
+    <footer class="modal-footer">
+      <button class="btn btn-outline" data-close-modal>Batal</button>
+      <button class="btn btn-primary"><span class="material-symbols-outlined text-sm">send</span> Konfirmasi</button>
+    </footer>
+  </dialog>
+
+</body>
+</html>

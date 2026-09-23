@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anteraja Hub Admin - Manifest Generator</title>
+  <meta name="description" content="Simulasi pembuatan manifest batch paket otomatis.">
+  
+  <!-- Font & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,500,0,0&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="styles.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+
+  <!-- HEADER UTAMA -->
+  <header class="app-header">
+    <div class="brand-area">
+      <img alt="Anteraja Logo" src="../src/logo.png">
+      <span class="badge badge-primary">HUB ADMIN</span>
+    </div>
+    
+    <div class="header-actions">
+      <div class="header-info-pill">
+        <span class="material-symbols-outlined text-sm">location_on</span>
+        HUB-JKS-01 • Jaksel
+      </div>
+      <div class="header-info-pill">
+        <span class="material-symbols-outlined text-sm">schedule</span>
+        14:42:10 WIB
+      </div>
+      <button class="btn btn-outline" style="border-radius: 999px; padding: 0.5rem;" aria-label="Notifications">
+        <span class="material-symbols-outlined">notifications</span>
+      </button>
+      <button class="btn btn-primary rounded-full">
+        <span class="material-symbols-outlined">bolt</span> Quick Dispatch
+      </button>
+    </div>
+  </header>
+
+  <div class="app-body">
+    
+    <!-- SIDEBAR -->
+    <aside class="sidebar" aria-label="Sidebar Navigation">
+      <div class="sidebar-top">
+        <div class="profile-card">
+          <div class="profile-avatar">J4</div>
+          <div>
+            <p class="font-bold text-sm">Hub JKT-04</p>
+            <p class="text-xs text-secondary flex items-center gap-1">
+              <span class="status-dot pulse" style="background-color: var(--success-text);"></span> Active Session • Live
+            </p>
+          </div>
+        </div>
+
+        <p class="text-xs font-bold text-secondary uppercase mb-2 px-3">Main Navigation</p>
+        <nav class="side-nav">
+          <a href="inbound-sorting.html">
+            <span class="nav-label"><span class="material-symbols-outlined">inbox</span> Inbound Sorting</span>
+          </a>
+          <a href="sla-queue.html">
+            <span class="nav-label"><span class="material-symbols-outlined">timer</span> SLA Queue</span>
+          </a>
+          <a href="outbound-dispatch.html">
+            <span class="nav-label"><span class="material-symbols-outlined">local_shipping</span> Outbound Dispatch</span>
+          </a>
+        </nav>
+      </div>
+      
+      <div class="sidebar-bottom">
+        <a href="manifest-generator.html" class="flex items-center gap-2 p-3 rounded-lg font-bold text-primary mb-4" style="background: var(--primary-fixed);">
+          <span class="material-symbols-outlined">change_circle</span> Manifest Generator
+        </a>
+        <div class="profile-card" style="background-color: transparent; border: none; padding: 0; margin-bottom: 0;">
+          <div class="profile-avatar" style="background-color: var(--primary-fixed); color: var(--primary);">AB</div>
+          <div class="flex-1">
+            <p class="font-bold text-sm">Admin Budi</p>
+            <p class="text-xs text-secondary">ID: ADM-102 • Hub Operator</p>
+          </div>
+          <span class="material-symbols-outlined text-secondary">swap_vert</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+      <header class="page-header">
+        <p class="breadcrumb">Operations / HUB-JKS-01 / <span class="text-primary font-bold">Manifest Data Generator</span></p>
+        <h1 class="text-2xl font-bold mt-2">Manifest Data Generator</h1>
+        <p class="text-sm text-secondary mt-1">Halaman simulasi & pembuatan skenario manifest batch paket otomatis ke Hub tujuan pilihan untuk pengujian alur sorting dan outbound dispatch.</p>
+      </header>
+
+      <div class="flex gap-6 mb-6">
+        
+        <!-- CONFIGURATION -->
+        <section class="panel flex-1 p-6">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="p-2 rounded bg-primary-fixed" style="background: var(--primary-fixed); color: var(--primary);"><span class="material-symbols-outlined">tune</span></div>
+            <div>
+              <h2 class="font-bold text-lg">Konfigurasi Skenario Manifest</h2>
+              <p class="text-xs text-secondary">Tentukan hub penerima, parameter muatan, dan jenis batch</p>
+            </div>
+          </div>
+
+          <div class="form-group mb-6">
+            <label class="form-label text-xs uppercase text-secondary">HUB TUJUAN (DESTINATION) <span class="text-primary">*</span></label>
+            <div class="relative flex items-center">
+              <span class="material-symbols-outlined absolute text-secondary ml-3" style="position:absolute;">navigation</span>
+              <select class="form-select pl-10" style="padding-left: 2.5rem; font-weight: 600;">
+                <option>HUB-BDG-02 • Bandung Pasteur Gateway</option>
+                <option>HUB-TGR-01 • Tangerang Batuceper</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="border rounded-lg p-4 mb-6" style="background: var(--surface);">
+            <div class="flex justify-between items-center mb-4">
+              <div>
+                <label class="form-label text-xs uppercase text-secondary mb-1 block">JUMLAH PAKET PER MANIFEST <span class="text-primary">*</span></label>
+                <p class="text-xs text-secondary">Estimasi muatan yang akan digenerate ke dalam kontainer/trolley</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <input type="number" id="qtyValue" value="25" class="form-input text-center font-bold text-lg" style="width: 70px; padding: 0.25rem;">
+                <span class="text-sm font-semibold">Paket</span>
+              </div>
+            </div>
+            
+            <input type="range" id="qtySlider" min="1" max="200" value="25" class="form-range w-full mb-4">
+            
+            <div class="flex items-center gap-2 text-xs">
+              <span class="text-secondary mr-2">Quick Select:</span>
+              <button type="button" class="btn btn-outline py-1 px-3 text-xs" data-quick-select="15">15 Pkt</button>
+              <button type="button" class="btn btn-outline py-1 px-3 text-xs" data-quick-select="25">25 Pkt</button>
+              <button type="button" class="btn btn-outline py-1 px-3 text-xs" data-quick-select="50">50 Pkt</button>
+              <button type="button" class="btn btn-outline py-1 px-3 text-xs" data-quick-select="100">100 Pkt (Feeder Truck)</button>
+            </div>
+          </div>
+
+          <div class="flex justify-between items-center mt-6">
+            <button class="btn text-secondary hover:text-on-surface" style="padding-left: 0;">Reset Parameter</button>
+            <button class="btn btn-primary px-6"><span class="material-symbols-outlined">rocket_launch</span> Buat & Kirim Skenario Manifest</button>
+          </div>
+        </section>
+
+        <!-- PREVIEW -->
+        <section class="panel p-6" style="width: 350px;">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="font-bold text-xs uppercase flex items-center gap-2"><span class="status-dot pulse" style="background: var(--primary);"></span> PREVIEW GENERATED PAYLOAD</h2>
+            <span class="badge badge-neutral text-[10px]">DRAFT SIGNAL</span>
+          </div>
+
+          <div class="rounded-xl p-4 mb-6" style="background: #1e293b; color: white;">
+            <p class="text-xs text-slate-400 mb-1">ESTIMASI KODE MANIFEST:</p>
+            <h3 class="font-mono text-xl text-pink-400 font-bold" style="color: #f472b6;">MNF-2409-9021</h3>
+          </div>
+
+          <div class="flex flex-col gap-4 text-sm">
+            <div class="flex justify-between border-b pb-2" style="border-color: var(--border-color);">
+              <span class="text-secondary">Rute Pengiriman:</span>
+              <span class="font-bold text-right">HUB-JKS-01 <span class="material-symbols-outlined text-xs">arrow_forward</span> HUB-BDG-02</span>
+            </div>
+            <div class="flex justify-between border-b pb-2" style="border-color: var(--border-color);">
+              <span class="text-secondary">Kuantitas Paket:</span>
+              <span class="font-bold text-primary">25 Paket Siap Muat</span>
+            </div>
+            <div class="flex justify-between border-b pb-2" style="border-color: var(--border-color);">
+              <span class="text-secondary">Armada Pengangkut:</span>
+              <span class="font-bold">Blind Van</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-secondary">Created By:</span>
+              <span class="font-bold">Admin Budi (ADM-102)</span>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- LOG HISTORY -->
+      <section class="panel">
+        <header class="panel-header">
+          <div class="flex items-center gap-3">
+            <div class="p-2 rounded-full" style="background: var(--primary-fixed); color: var(--primary);">
+              <span class="material-symbols-outlined text-sm">history</span>
+            </div>
+            <h2 class="text-lg font-bold">Riwayat Log Manifest Generator</h2>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="flex items-center border rounded-lg px-3 py-2" style="background: white;">
+              <span class="material-symbols-outlined text-secondary text-sm mr-2">search</span>
+              <input type="text" placeholder="Cari manifest / hub..." style="border: none; outline: none; font-size: 0.875rem; background: transparent;">
+            </div>
+            <select class="form-select w-auto py-2">
+              <option>Semua Hub Target</option>
+            </select>
+          </div>
+        </header>
+
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>TIMESTAMP (WIB)</th>
+                <th>KODE MANIFEST</th>
+                <th>HUB TUJUAN</th>
+                <th style="text-align: center;">JUMLAH PAKET</th>
+                <th>ARMADA / FEEDER</th>
+                <th style="text-align: right;">AKSI</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-secondary font-mono text-sm">2026-09-17 14:38</td>
+                <td><strong class="font-bold text-primary flex items-center gap-1"><span class="material-symbols-outlined text-sm">description</span> MNF-2409-9020</strong></td>
+                <td>
+                  <div class="flex-col gap-1">
+                    <strong class="font-semibold text-sm flex items-center gap-1"><span class="status-dot" style="background: var(--info-text);"></span> HUB-BDG-02</strong>
+                    <span class="text-xs text-secondary">Bandung Pasteur</span>
+                  </div>
+                </td>
+                <td style="text-align: center;"><strong class="font-bold text-sm">28 Paket</strong></td>
+                <td>Blind Van (CDE)</td>
+                <td style="text-align: right;"><button class="btn btn-primary text-xs px-3 py-1 rounded-full"><span class="material-symbols-outlined text-xs">visibility</span> Detail</button></td>
+              </tr>
+              <tr>
+                <td class="text-secondary font-mono text-sm">2026-09-17 14:15</td>
+                <td><strong class="font-bold text-primary flex items-center gap-1"><span class="material-symbols-outlined text-sm">description</span> MNF-2409-9019</strong></td>
+                <td>
+                  <div class="flex-col gap-1">
+                    <strong class="font-semibold text-sm flex items-center gap-1"><span class="status-dot" style="background: var(--warning-text);"></span> HUB-TGR-01</strong>
+                    <span class="text-xs text-secondary">Tangerang Batuceper</span>
+                  </div>
+                </td>
+                <td style="text-align: center;"><strong class="font-bold text-sm">45 Paket</strong></td>
+                <td>Colt Diesel (CDD)</td>
+                <td style="text-align: right;"><button class="btn btn-primary text-xs px-3 py-1 rounded-full"><span class="material-symbols-outlined text-xs">visibility</span> Detail</button></td>
+              </tr>
+              <tr>
+                <td class="text-secondary font-mono text-sm">2026-09-17 13:50</td>
+                <td><strong class="font-bold text-primary flex items-center gap-1"><span class="material-symbols-outlined text-sm">description</span> MNF-2409-9018</strong></td>
+                <td>
+                  <div class="flex-col gap-1">
+                    <strong class="font-semibold text-sm flex items-center gap-1"><span class="status-dot" style="background: var(--danger-text);"></span> HUB-BKS-03</strong>
+                    <span class="text-xs text-secondary">Bekasi Barat</span>
+                  </div>
+                </td>
+                <td style="text-align: center;"><strong class="font-bold text-sm">18 Paket</strong></td>
+                <td>Blind Van (CDE)</td>
+                <td style="text-align: right;"><button class="btn btn-primary text-xs px-3 py-1 rounded-full"><span class="material-symbols-outlined text-xs">visibility</span> Detail</button></td>
+              </tr>
+              <tr>
+                <td class="text-secondary font-mono text-sm">2026-09-17 12:30</td>
+                <td><strong class="font-bold text-primary flex items-center gap-1"><span class="material-symbols-outlined text-sm">description</span> MNF-2409-9017</strong></td>
+                <td>
+                  <div class="flex-col gap-1">
+                    <strong class="font-semibold text-sm flex items-center gap-1"><span class="status-dot" style="background: var(--success-text);"></span> HUB-SBY-01</strong>
+                    <span class="text-xs text-secondary">Surabaya Gubeng</span>
+                  </div>
+                </td>
+                <td style="text-align: center;"><strong class="font-bold text-sm">80 Paket</strong></td>
+                <td>Wingbox Truck</td>
+                <td style="text-align: right;"><button class="btn btn-primary text-xs px-3 py-1 rounded-full"><span class="material-symbols-outlined text-xs">visibility</span> Detail</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <footer class="panel-body flex justify-between items-center border-t" style="border-top: 1px solid var(--border-color);">
+          <div class="text-xs text-secondary">Menampilkan 4 dari 28 riwayat manifest (Halaman 1 dari 2)</div>
+          <div class="flex gap-1">
+            <button class="btn btn-outline text-xs px-2 py-1"><span class="material-symbols-outlined text-sm">chevron_left</span> Sebelumnya</button>
+            <button class="btn btn-primary text-xs px-3 py-1">1</button>
+            <button class="btn btn-outline text-xs px-3 py-1">2</button>
+            <button class="btn btn-outline text-xs px-2 py-1">Berikutnya <span class="material-symbols-outlined text-sm">chevron_right</span></button>
+          </div>
+        </footer>
+      </section>
+
+    </main>
+  </div>
+</body>
+</html>
