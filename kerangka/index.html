@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Manajemen Hub Anteraja | Portal Logistik & Dispatch Kurir</title>
+    <meta name="description"
+        content="Pusat sinkronisasi manifest parcel, pemantauan SLA sorting real-time, dan orkestrasi armada Satria Kurir Anteraja seluruh Indonesia.">
+    <meta name="keywords" content="Anteraja, Hub Management, Logistik, Satria Kurir, Dispatch, SLA Monitor">
+    <meta name="author" content="Anteraja Operational Team">
+    <meta name="robots" content="index, follow">
+
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Sistem Manajemen Hub Anteraja">
+    <meta property="og:description" content="Portal operasional resmi manajemen Hub dan kurir Anteraja.">
+    <meta property="og:image" content="logo.png">
+</head>
+
+<body>
+
+    <main>
+        <article id="console-info" aria-labelledby="main-heading">
+            <header>
+                <p><mark>ENTERPRISE LOGISTICS CONSOLE</mark></p>
+                <h1 id="main-heading">Sistem Manajemen Hub, Signaling & Dispatch Kurir Logistik</h1>
+                <p>Pusat sinkronisasi manifest parcel, pemantauan SLA sorting real-time, dan orkestrasi armada Satria
+                    Kurir Anteraja seluruh Indonesia.</p>
+            </header>
+
+            <section aria-labelledby="features-heading">
+                <h2 id="features-heading" class="visually-hidden">Fitur Utama Platform</h2>
+                <ul>
+                    <li>
+                        <article>
+                            <h3>SLA Monitor</h3>
+                            <p>&lt;30m breach alert &amp; prioritas auto-reroute.</p>
+                        </article>
+                    </li>
+                    <li>
+                        <article>
+                            <h3>In/Out Feeder</h3>
+                            <p>Manifest transit antar-linehaul terverifikasi.</p>
+                        </article>
+                    </li>
+                    <li>
+                        <article>
+                            <h3>Satria Handover</h3>
+                            <p>Distribusi last-mile &amp; integrasi batch kurir.</p>
+                        </article>
+                    </li>
+                </ul>
+            </section>
+
+            <footer>
+                <p><small>Hub Operational Signal: <strong>Active</strong></small></p>
+            </footer>
+        </article>
+
+        <section id="auth-section" aria-labelledby="login-heading">
+
+            <header>
+                <figure>
+                    <img src="logo.png" alt="Logo Resmi Anteraja - Satria Express Logistik" width="150">
+                    <figcaption class="visually-hidden">Anteraja Logo</figcaption>
+                </figure>
+                <p><mark>HUB ADMIN PORTAL</mark></p>
+                <h2 id="login-heading">Masuk ke Akun Operator Hub</h2>
+                <p>Masukkan NIK / ID Operator dan kata sandi Anda untuk mengakses terminal operasional.</p>
+            </header>
+
+            <form action="/api/v1/auth/login" method="POST" id="loginForm">
+
+                <fieldset>
+                    <legend class="visually-hidden">Kredensial Login Operator</legend>
+
+                    <p>
+                        <label for="terminal">Terminal Hub Logistik <small>(Wajib diisi)</small></label><br>
+                        <select id="terminal" name="terminal" required aria-required="true">
+                            <option value="HUB-JKS-01">HUB-JKS-01 (Jakarta Selatan Transit Hub)</option>
+                            <option value="HUB-BDO-01">HUB-BDO-01 (Bandung Transit Hub)</option>
+                            <option value="HUB-SUB-01">HUB-SUB-01 (Surabaya Transit Hub)</option>
+                        </select>
+                    </p>
+
+                    <p>
+                        <label for="nik">NIK / ID Operator <small>(Format: ADM-XXX / NIK)</small></label><br>
+                        <input type="text" id="nik" name="nik" placeholder="Contoh: ADM-102 atau NIK 3175..." required
+                            aria-required="true">
+                    </p>
+
+                    <p>
+                        <label for="password">Kata Sandi</label>
+                        <a href="/reset-password"><small>Lupa Kata Sandi?</small></a><br>
+                        <input type="password" id="password" name="password" placeholder="Masukkan kata sandi akun"
+                            required aria-required="true">
+                    </p>
+
+                    <p>
+                        <input type="checkbox" id="remember" name="remember" value="true" checked>
+                        <label for="remember">Ingat Terminal &amp; ID Saya di perangkat ini</label>
+                    </p>
+
+                    <p>
+                        <button type="submit">Masuk ke Terminal Hub &rarr;</button>
+                    </p>
+                </fieldset>
+
+            </form>
+
+            <section aria-label="Metode Akses Alternatif">
+                <p>-- ATAU MASUK DENGAN --</p>
+                <button type="button">Login via Corporate SSO / Google Workspace</button>
+            </section>
+
+            <aside aria-label="Bantuan Informasi Shift">
+                <p>
+                    Kendala akses atau pergantian shift? Hubungi <strong>IT Support Hub (Ext. 204)</strong> atau
+                    Helpdesk Operasional Pusat.
+                </p>
+            </aside>
+
+            <footer>
+                <p><small>v4.19.2-prod &bull; Terminal Node: JKS-01 &bull; Timezone: WIB (UTC+7)</small></p>
+            </footer>
+
+        </section>
+
+    </main>
+
+</body>
+
+</html>
