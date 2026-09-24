@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+/* ── Anteraja Hub Design Tokens ── */
+@theme {
+  /* Brand Colors */
+  --color-anteraja-primary: #D6006E;
+  --color-anteraja-primary-dark: #B8005E;
+  --color-anteraja-primary-light: #F0268A;
+
+  /* Sidebar */
+  --color-sidebar-bg: #1A1025;
+  --color-sidebar-hover: #2A1A3A;
+  --color-sidebar-active: #D6006E;
+  --color-sidebar-text: #A09AAE;
+  --color-sidebar-text-active: #FFFFFF;
+
+  /* Navbar */
+  --color-navbar-bg: #FFFFFF;
+  --color-navbar-border: #F0EDF4;
+
+  /* SLA Zones */
+  --color-sla-critical: #EF4444;
+  --color-sla-warning: #F59E0B;
+  --color-sla-normal: #22C55E;
+
+  /* Capacity */
+  --color-capacity-safe: #22C55E;
+  --color-capacity-warning: #F59E0B;
+  --color-capacity-danger: #EF4444;
+
+  /* Neutral Surfaces */
+  --color-surface: #FFFFFF;
+  --color-surface-muted: #F8F7FA;
+  --color-surface-border: #E8E5ED;
+
+  /* Typography */
+  --font-sans: 'DM Sans', system-ui, -apple-system, sans-serif;
+
+  /* Sidebar Width */
+  --spacing-sidebar: 260px;
+
+  /* Navbar Height */
+  --spacing-navbar: 64px;
+}
+
+/* ── Base Resets ── */
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    background-color: var(--color-surface-muted);
+    color: #1f2937;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  #root {
+    min-height: 100dvh;
+  }
+}
+
+/* ── Scrollbar Styling ── */
+@layer base {
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #c4c0cc;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #a09aae;
+  }
+}
