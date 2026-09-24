@@ -49,59 +49,20 @@
 </head>
 <body class="bg-background text-slate-800 font-sans min-h-screen flex flex-col md:flex-row antialiased">
 
-  <!-- Sidebar -->
-  <aside class="w-full md:w-64 bg-surface border-r border-slate-200 flex flex-col shrink-0">
-    <div class="p-6 border-b border-slate-100 flex items-center gap-3">
-      <img src="../src/logo.png" alt="Anteraja Logo" class="h-8 w-auto">
-      <div>
-        <h1 class="font-bold text-lg text-brand leading-tight">Anteraja Hub</h1>
-        <p class="text-xs text-slate-500">Admin Panel</p>
-      </div>
-    </div>
-    
-    <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
-      <a href="sla-queue.html" class="flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-brand transition-colors rounded-lg font-medium">
-        <span class="material-symbols-outlined text-[20px]">schedule</span>
-        Priority SLA Queue
-      </a>
-      <a href="inbound-sorting.html" class="flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-brand transition-colors rounded-lg font-medium">
-        <span class="material-symbols-outlined text-[20px]">download</span>
-        Inbound Sorting
-      </a>
-      <a href="outbound-dispatch.html" class="flex items-center gap-3 px-3 py-2.5 bg-brand-light text-brand rounded-lg font-medium transition-colors">
-        <span class="material-symbols-outlined text-[20px]">upload</span>
-        Outbound Dispatch
-      </a>
-      <a href="manifest-generator.html" class="flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-brand transition-colors rounded-lg font-medium mt-6 border border-slate-200">
-        <span class="material-symbols-outlined text-[20px]">science</span>
-        Generator (Test)
-      </a>
-    </nav>
-    
-    <div class="p-4 border-t border-slate-200">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-brand font-bold">AB</div>
-        <div class="text-sm">
-          <p class="font-semibold">Admin Budi</p>
-          <p class="text-xs text-slate-500">HUB-JKS-01</p>
-        </div>
-      </div>
-    </div>
-  </aside>
+  <!-- Sidebar (Rendered by script.js) -->
+  <aside id="app-sidebar" class="w-full md:w-64 bg-white border-r border-slate-200 flex flex-col shrink-0 h-screen hidden md:flex"></aside>
 
   <!-- Main Content -->
-  <main class="flex-1 flex flex-col h-screen overflow-hidden">
+  <main class="flex-1 flex flex-col h-screen overflow-hidden bg-slate-50">
+    <!-- Global Navbar (Rendered by script.js) -->
+    <nav id="app-navbar" class="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between shrink-0 z-20"></nav>
+    
+
     <!-- Header -->
     <header class="bg-surface border-b border-slate-200 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 z-10 shrink-0">
       <div>
         <h2 class="text-2xl font-bold text-slate-900">Outbound Dispatch</h2>
         <p class="text-sm text-slate-500">Pemantauan armada kurir aktif dan penugasan manifest (handover)</p>
-      </div>
-      <div class="flex items-center gap-3">
-        <button data-open-modal="modal-create-batch" class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-brand hover:bg-brand-hover text-white text-sm font-medium rounded-lg shadow-sm transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-brand">
-          <span class="material-symbols-outlined text-[18px]">add_box</span>
-          Buat Batch Dispatch Baru
-        </button>
       </div>
     </header>
 
