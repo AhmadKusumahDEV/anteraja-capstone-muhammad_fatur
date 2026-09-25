@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useOutboundStore } from '../store/useOutboundStore';
 
 const BREADCRUMB_MAP: Record<string, string> = {
   '/sla-queue': 'Priority SLA Queue',
@@ -12,6 +13,7 @@ export default function Navbar() {
   const [currentTime, setCurrentTime] = useState<string>('');
   const location = useLocation();
   const currentPathLabel = BREADCRUMB_MAP[location.pathname] || 'Dashboard';
+  const { openModal } = useOutboundStore();
 
   useEffect(() => {
     const updateClock = () => {
@@ -83,6 +85,7 @@ export default function Navbar() {
         {/* Quick Dispatch CTA */}
         <button
           type="button"
+          onClick={openModal}
           className="
             inline-flex items-center gap-2 rounded-lg
             bg-anteraja-primary px-4 py-2

@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
+import CreateBatchModal from '../features/outbound/CreateBatchModal';
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -22,6 +23,9 @@ export default function MainLayout({ children }: MainLayoutProps) {
           {children}
         </main>
       </div>
+
+      {/* Global Modals */}
+      <CreateBatchModal />
     </div>
   );
 }

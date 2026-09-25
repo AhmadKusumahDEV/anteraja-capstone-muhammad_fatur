@@ -1,0 +1,19 @@
+services:
+  anteraja-hub:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    image: anteraja-hub-admin:latest
+    container_name: anteraja-hub-admin
+    restart: unless-stopped
+    ports:
+      - "5176"
+    networks:
+      - nginx-network
+
+networks:
+  nginx-network:
+    external: true          # Network ini sudah ada, dikelola oleh Nginx Anda
+    name: nginx-network     # Sesuaikan dengan nama network Nginx Anda (lihat: docker network ls)
+
