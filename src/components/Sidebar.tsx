@@ -79,9 +79,6 @@ export default function Sidebar() {
           className="rounded-xl flex-shrink-0"
         />
         <div className="flex flex-col gap-1.5">
-          <span className="text-base font-bold tracking-wide text-white leading-none pl-1">
-            anteraja
-          </span>
           <span className="inline-block w-fit rounded-md bg-anteraja-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-white">
             Hub Admin
           </span>

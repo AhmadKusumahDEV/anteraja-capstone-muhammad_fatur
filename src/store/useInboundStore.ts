@@ -46,7 +46,7 @@ export const useInboundStore = create<InboundState>((set, get) => ({
   closeConfirmModal: () => set({ confirmingManifest: null }),
 
   // Delegates to global hub store
-  acknowledgeManifest: (manifestCode, _totalPackages) => {
+  acknowledgeManifest: (manifestCode) => {
     useHubStore.getState().acknowledgeManifest(manifestCode);
   },
 

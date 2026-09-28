@@ -22,7 +22,7 @@ export default function CapacityAlarm() {
 
     snoozeTimeoutRef.current = setTimeout(() => {
       setIsSnoozed(false);
-    }, 10 * 60 * 1000);
+    }, 15 * 60 * 1000);
   };
 
   const handleDismissSession = () => {
@@ -157,7 +157,7 @@ export default function CapacityAlarm() {
               onClick={handleSnooze}
               className="w-full rounded-xl bg-red-600 py-4 text-sm font-bold text-white shadow-lg transition-all hover:bg-red-700 active:scale-[0.98]"
             >
-              TUNDA PERINGATAN (10 MENIT)
+              TUNDA PERINGATAN (15 MENIT)
             </button>
             <button
               onClick={handleDismissSession}

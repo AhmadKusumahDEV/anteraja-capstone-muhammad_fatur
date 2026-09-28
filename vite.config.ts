@@ -4,6 +4,7 @@ import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/capstone-anter-aja/',
   plugins: [react(), tailwindcss()],
   assetsInclude: ['**/*.mpeg'],
 })

@@ -8,7 +8,7 @@ services:
     container_name: anteraja-hub-admin
     restart: unless-stopped
     ports:
-      - "5176"
+      - "5176:80"
     networks:
       - nginx-network
 

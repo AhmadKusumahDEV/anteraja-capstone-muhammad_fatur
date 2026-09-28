@@ -1,13 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useOutboundStore } from '../store/useOutboundStore';
-
-const BREADCRUMB_MAP: Record<string, string> = {
-  '/sla-queue': 'Priority SLA Queue',
-  '/inbound': 'Inbound Sorting',
-  '/outbound': 'Outbound Dispatch',
-  '/manifest-generator': 'Manifest Data Generator',
-};
+import { BREADCRUMB_MAP } from '../constants/routes';
 
 export default function Navbar() {
   const [currentTime, setCurrentTime] = useState<string>('');

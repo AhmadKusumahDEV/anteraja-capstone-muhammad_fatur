@@ -1,7 +1,3 @@
-/**
- * Utility function to generate pagination numbers with ellipses for large page counts.
- * Returns an array of numbers and strings (e.g. [1, 2, 3, '...', 10]).
- */
 export function generatePagination(currentPage: number, totalPages: number): (number | string)[] {
   const pages: (number | string)[] = [];
   
