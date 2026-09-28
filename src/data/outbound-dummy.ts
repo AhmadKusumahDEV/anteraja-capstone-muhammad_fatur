@@ -107,7 +107,7 @@ export const DUMMY_AVAILABLE_COURIERS: Courier[] = [
     id: 'SAT-01',
     name: 'Satria Ilham',
     fleet_type: 'MOTORCYCLE',
-    status: 'READY_NOW',
+    status: 'STANDBY',
     bay_location: 'Bay 02',
     initials: 'SI',
   },

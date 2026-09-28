@@ -1,4 +1,4 @@
-import type { Package } from '../../types/sla-queue';
+import type { HubPackage } from '../../types/hub';
 import { useSlaQueueStore } from '../../store/useSlaQueueStore';
 
 const SLA_BADGE_STYLES = {
@@ -26,7 +26,7 @@ const SERVICE_LABELS: Record<string, string> = {
 };
 
 interface Props {
-  pkg: Package;
+  pkg: HubPackage;
   index: number;
 }
 

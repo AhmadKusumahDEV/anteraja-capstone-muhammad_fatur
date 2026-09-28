@@ -1,7 +1,12 @@
 import { useManifestStore } from '../../store/useManifestStore';
+import { useHubStore } from '../../store/useHubStore';
+import { generatePagination } from '../../utils/pagination';
 import ManifestLogRow from './ManifestLogRow';
 
 export default function ManifestLogTable() {
+  // Subscribe to hubStore so this re-renders when manifestLogs changes
+  useHubStore((state) => state.manifestLogs);
+
   const {
     hubs,
     searchQuery,
@@ -72,7 +77,7 @@ export default function ManifestLogTable() {
               <th scope="col" className="px-3 py-4 text-left text-[10px] font-bold uppercase tracking-widest text-gray-400">KODE MANIFEST</th>
               <th scope="col" className="px-3 py-4 text-left text-[10px] font-bold uppercase tracking-widest text-gray-400">HUB TUJUAN</th>
               <th scope="col" className="px-3 py-4 text-center text-[10px] font-bold uppercase tracking-widest text-gray-400">JUMLAH PAKET</th>
-              <th scope="col" className="px-3 py-4 text-center text-[10px] font-bold uppercase tracking-widest text-gray-400">ARMADA / FEEDER</th>
+
               <th scope="col" className="py-4 pl-3 pr-6 text-right text-[10px] font-bold uppercase tracking-widest text-gray-400">AKSI</th>
             </tr>
           </thead>
@@ -83,7 +88,7 @@ export default function ManifestLogTable() {
               ))
             ) : (
               <tr>
-                <td colSpan={6} className="py-12 text-center text-sm text-gray-400">
+                <td colSpan={5} className="py-12 text-center text-sm text-gray-400">
                   Tidak ada riwayat manifest yang sesuai.
                 </td>
               </tr>
@@ -108,20 +113,26 @@ export default function ManifestLogTable() {
             &lt; Sebelumnya
           </button>
 
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-            <button
-              key={page}
-              type="button"
-              onClick={() => setPage(page)}
-              className={`flex h-7 w-7 items-center justify-center rounded-lg text-[11px] font-bold transition-colors ${
-                currentPage === page
-                  ? 'bg-anteraja-primary text-white shadow-sm'
-                  : 'bg-white text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              {page}
-            </button>
-          ))}
+          {generatePagination(currentPage, totalPages).map((page, index) =>
+            typeof page === 'number' ? (
+              <button
+                key={index}
+                type="button"
+                onClick={() => setPage(page)}
+                className={`flex h-7 w-7 items-center justify-center rounded-lg text-[11px] font-bold transition-colors ${
+                  currentPage === page
+                    ? 'bg-anteraja-primary text-white shadow-sm'
+                    : 'bg-white text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                {page}
+              </button>
+            ) : (
+              <span key={index} className="px-1 text-gray-400">
+                {page}
+              </span>
+            )
+          )}
 
           <button
             type="button"

@@ -1,7 +1,12 @@
 import { useOutboundStore } from '../../store/useOutboundStore';
+import { useHubStore } from '../../store/useHubStore';
+import { generatePagination } from '../../utils/pagination';
 import DispatchBatchCard from './DispatchBatchCard';
 
 export default function DispatchBatchBoard() {
+  // Subscribe to hubStore so this re-renders when batches change
+  useHubStore((state) => state.outboundBatches);
+
   const {
     searchQuery,
     currentPage,
@@ -116,21 +121,27 @@ export default function DispatchBatchBoard() {
             Sebelumnya
           </button>
 
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-            <button
-              key={page}
-              type="button"
-              onClick={() => setPage(page)}
-              aria-current={currentPage === page ? 'page' : undefined}
-              className={`flex h-7 w-7 items-center justify-center rounded-lg text-[11px] font-bold transition-colors ${
-                currentPage === page
-                  ? 'bg-anteraja-primary text-white shadow-sm'
-                  : 'bg-white text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              {page}
-            </button>
-          ))}
+          {generatePagination(currentPage, totalPages).map((page, index) =>
+            typeof page === 'number' ? (
+              <button
+                key={index}
+                type="button"
+                onClick={() => setPage(page)}
+                aria-current={currentPage === page ? 'page' : undefined}
+                className={`flex h-7 w-7 items-center justify-center rounded-lg text-[11px] font-bold transition-colors ${
+                  currentPage === page
+                    ? 'bg-anteraja-primary text-white shadow-sm'
+                    : 'bg-white text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                {page}
+              </button>
+            ) : (
+              <span key={index} className="px-1 text-gray-400">
+                {page}
+              </span>
+            )
+          )}
 
           <button
             type="button"

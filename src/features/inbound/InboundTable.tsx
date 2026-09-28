@@ -1,7 +1,12 @@
 import { useInboundStore } from '../../store/useInboundStore';
+import { useHubStore } from '../../store/useHubStore';
+import { generatePagination } from '../../utils/pagination';
 import InboundTableRow from './InboundTableRow';
 
 export default function InboundTable() {
+  // Subscribe to hubStore so this re-renders when manifests change
+  useHubStore((state) => state.inboundManifests);
+
   const {
     manifests,
     currentPage,
@@ -34,16 +39,6 @@ export default function InboundTable() {
           type="button"
           className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:bg-gray-50"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-3.5 w-3.5 text-gray-400"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            aria-hidden="true"
-          >
-            <path d="M3 3a1 1 0 000 2h11a1 1 0 100-2H3zM3 7a1 1 0 000 2h5a1 1 0 000-2H3zM3 11a1 1 0 100 2h4a1 1 0 100-2H3zM13 16a1 1 0 102 0v-5.586l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 101.414 1.414L13 10.414V16z" />
-          </svg>
-          Urutkan Waktu Tiba
         </button>
       </div>
 
@@ -68,7 +63,7 @@ export default function InboundTable() {
                 scope="col"
                 className="px-3 py-4 text-left text-[10px] font-bold uppercase tracking-widest text-gray-400"
               >
-                KENDARAAN PENGIRIM
+                WAKTU KEDATANGAN
               </th>
               <th
                 scope="col"
@@ -122,21 +117,26 @@ export default function InboundTable() {
             Sebelumnya
           </button>
 
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-            <button
-              key={page}
-              type="button"
-              onClick={() => setPage(page)}
-              aria-current={currentPage === page ? 'page' : undefined}
-              className={`flex h-7 w-7 items-center justify-center rounded-lg text-[11px] font-bold transition-colors ${
-                currentPage === page
-                  ? 'bg-anteraja-primary text-white shadow-sm'
-                  : 'bg-white text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              {page}
-            </button>
-          ))}
+          {generatePagination(currentPage, totalPages).map((page, index) =>
+            typeof page === 'number' ? (
+              <button
+                key={index}
+                type="button"
+                onClick={() => setPage(page)}
+                aria-current={currentPage === page ? 'page' : undefined}
+                className={`flex h-7 w-7 items-center justify-center rounded-lg text-[11px] font-bold transition-colors ${currentPage === page
+                    ? 'bg-anteraja-primary text-white shadow-sm'
+                    : 'bg-white text-gray-600 hover:bg-gray-50'
+                  }`}
+              >
+                {page}
+              </button>
+            ) : (
+              <span key={index} className="px-1 text-gray-400">
+                {page}
+              </span>
+            )
+          )}
 
           <button
             type="button"

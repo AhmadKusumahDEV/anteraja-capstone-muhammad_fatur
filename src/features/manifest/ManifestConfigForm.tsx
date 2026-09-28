@@ -1,11 +1,21 @@
 import { useManifestStore } from '../../store/useManifestStore';
+import toast from 'react-hot-toast';
 
 export default function ManifestConfigForm() {
-  const { hubs, selectedHubId, packageCount, setSelectedHub, setPackageCount, resetForm, submitManifest } = useManifestStore();
+  const { packageCount, setPackageCount, resetForm, submitManifest } = useManifestStore();
 
-  const handleHubChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const val = e.target.value;
-    setSelectedHub(val ? Number(val) : null);
+  const handleGenerate = () => {
+    submitManifest();
+    
+    toast.success(`Manifest dengan ${packageCount} paket berhasil di-generate!`, {
+      icon: '🚚',
+      style: {
+        background: '#ECFDF5',
+        color: '#065F46',
+        fontWeight: 'bold',
+        border: '1px solid #6EE7B7'
+      }
+    });
   };
 
   return (
@@ -33,16 +43,11 @@ export default function ManifestConfigForm() {
           <div className="relative">
             <select
               id="hub-select"
-              value={selectedHubId || ''}
-              onChange={handleHubChange}
+              value={1}
+              disabled
               className="w-full appearance-none rounded-xl border border-gray-200 bg-gray-50/50 py-3 pl-10 pr-10 text-sm font-semibold text-gray-800 transition-colors focus:border-anteraja-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-anteraja-primary"
             >
-              <option value="" disabled>Pilih Hub Tujuan...</option>
-              {hubs.map((hub) => (
-                <option key={hub.id} value={hub.id}>
-                  {hub.hub_code} • {hub.hub_name}
-                </option>
-              ))}
+              <option value={1}>HUB-JKS-01 • Hub Jakarta Selatan</option>
             </select>
             {/* Custom Arrow */}
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
@@ -57,6 +62,7 @@ export default function ManifestConfigForm() {
               </svg>
             </div>
           </div>
+          <p className="mt-1 text-[10px] text-gray-400">Pilihan dikunci ke Hub Anda untuk kebutuhan demo saat ini.</p>
         </div>
 
         {/* Jumlah Paket */}
@@ -114,6 +120,34 @@ export default function ManifestConfigForm() {
           </div>
         </div>
 
+        {/* ETA Settings */}
+        <div className="mb-8">
+          <label className="mb-2 block text-[11px] font-bold uppercase tracking-widest text-gray-500">
+            ESTIMASI WAKTU TIBA (ETA) <span className="text-red-500">*</span>
+          </label>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[
+              { label: 'Sekarang', value: 0 },
+              { label: '+15 Menit', value: 15 },
+              { label: '+30 Menit', value: 30 },
+              { label: '+1 Jam', value: 60 }
+            ].map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => useManifestStore.getState().setEtaOffsetMins(opt.value)}
+                className={`flex flex-col items-center rounded-xl border p-3 text-sm font-bold transition-all ${
+                  useManifestStore.getState().etaOffsetMins === opt.value
+                    ? 'border-anteraja-primary bg-pink-50 text-anteraja-primary shadow-sm'
+                    : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Actions */}
         <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
           <button
@@ -125,8 +159,7 @@ export default function ManifestConfigForm() {
           </button>
           <button
             type="button"
-            onClick={submitManifest}
-            disabled={!selectedHubId}
+            onClick={handleGenerate}
             className="inline-flex items-center gap-2 rounded-xl bg-anteraja-primary px-6 py-3 text-sm font-bold text-white shadow-sm transition-all hover:bg-anteraja-primary-dark active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">

@@ -1,77 +1,63 @@
 import { create } from 'zustand';
-import { DUMMY_HUBS, DUMMY_MANIFEST_LOGS, generateDummyPackages } from '../data/manifest-dummy';
-import type { Hub, ManifestLog, ManifestPackageDetail } from '../types/manifest';
+import type { Hub, ManifestLogEntry } from '../types/hub';
+import { useHubStore } from './useHubStore';
 
 const ITEMS_PER_PAGE = 10;
 
 interface ManifestState {
-  // Master Data
   hubs: Hub[];
+  manifests: ManifestLogEntry[];
 
-  // Form State
   selectedHubId: number | null;
   packageCount: number;
+  etaOffsetMins: number;
   draftManifestCode: string;
 
-  // Log State
-  manifests: ManifestLog[];
   searchQuery: string;
-  hubFilter: string; // 'ALL' or hub_code
+  hubFilter: string;
   currentPage: number;
 
-  // Modal State
   isDetailOpen: boolean;
-  selectedManifest: ManifestLog | null;
-  manifestPackages: ManifestPackageDetail[];
+  selectedManifest: ManifestLogEntry | null;
 
-  // Computed - Form
   getVehicleType: (count: number) => string;
   getSelectedHub: () => Hub | undefined;
-  
-  // Computed - Log
-  getFilteredManifests: () => ManifestLog[];
-  getPaginatedManifests: () => ManifestLog[];
+  getFilteredManifests: () => ManifestLogEntry[];
+  getPaginatedManifests: () => ManifestLogEntry[];
   getTotalPages: () => number;
-
-  // Actions - Form
-  setSelectedHub: (id: number | null) => void;
-  setPackageCount: (count: number) => void;
-  resetForm: () => void;
-  submitManifest: () => void;
   generateDraftCode: () => string;
 
-  // Actions - Log
+  setSelectedHub: (id: number | null) => void;
+  setPackageCount: (count: number) => void;
+  setEtaOffsetMins: (mins: number) => void;
+  resetForm: () => void;
+  submitManifest: () => void;
+
   setSearchQuery: (query: string) => void;
   setHubFilter: (hubCode: string) => void;
   setPage: (page: number) => void;
 
-  // Actions - Modal
-  openDetail: (manifest: ManifestLog) => void;
+  openDetail: (manifest: ManifestLogEntry) => void;
   closeDetail: () => void;
+
+  // Sync action — called by useHubStore
+  addLog: (log: ManifestLogEntry) => void;
 }
 
 export const useManifestStore = create<ManifestState>((set, get) => ({
-  // Data
-  hubs: DUMMY_HUBS,
-  manifests: DUMMY_MANIFEST_LOGS,
-
-  // Initial Form State
-  selectedHubId: null,
+  hubs: useHubStore.getState().hubs,
+  manifests: useHubStore.getState().manifestLogs,
+  selectedHubId: 1, // Fixed to HUB-JKS-01 by default
   packageCount: 25,
+  etaOffsetMins: 15, // Default ETA: +15 minutes
   draftManifestCode: `MNF-2409-${Math.floor(1000 + Math.random() * 9000)}`,
-
-  // Initial Log State
   searchQuery: '',
   hubFilter: 'ALL',
   currentPage: 1,
-
-  // Initial Modal State
   isDetailOpen: false,
   selectedManifest: null,
-  manifestPackages: [],
 
-  // --- Computed ---
-  getVehicleType: (count: number) => {
+  getVehicleType: (count) => {
     if (count < 30) return 'Blind Van (CDE)';
     if (count <= 50) return 'Colt Diesel (CDD)';
     return 'Wingbox Truck';
@@ -85,20 +71,17 @@ export const useManifestStore = create<ManifestState>((set, get) => ({
   getFilteredManifests: () => {
     const { manifests, searchQuery, hubFilter } = get();
     let filtered = [...manifests];
-
     if (hubFilter !== 'ALL') {
       filtered = filtered.filter((m) => m.destination_hub_code === hubFilter);
     }
-
     if (searchQuery.trim()) {
-      const lowerQ = searchQuery.toLowerCase();
+      const lq = searchQuery.toLowerCase();
       filtered = filtered.filter(
         (m) =>
-          m.manifest_code.toLowerCase().includes(lowerQ) ||
-          m.destination_hub_name.toLowerCase().includes(lowerQ)
+          m.manifest_code.toLowerCase().includes(lq) ||
+          m.destination_hub_name.toLowerCase().includes(lq)
       );
     }
-
     return filtered;
   },
 
@@ -108,79 +91,34 @@ export const useManifestStore = create<ManifestState>((set, get) => ({
     return sorted.slice(start, start + ITEMS_PER_PAGE);
   },
 
-  getTotalPages: () => {
-    return Math.max(1, Math.ceil(get().getFilteredManifests().length / ITEMS_PER_PAGE));
-  },
+  getTotalPages: () => Math.max(1, Math.ceil(get().getFilteredManifests().length / ITEMS_PER_PAGE)),
 
-  generateDraftCode: () => {
-    return `MNF-2409-${Math.floor(1000 + Math.random() * 9000)}`;
-  },
+  generateDraftCode: () => `MNF-2409-${Math.floor(1000 + Math.random() * 9000)}`,
 
-  // --- Actions: Form ---
   setSelectedHub: (id) => set({ selectedHubId: id, draftManifestCode: get().generateDraftCode() }),
   setPackageCount: (count) => set({ packageCount: count }),
-  
-  resetForm: () => set({
-    selectedHubId: null,
-    packageCount: 25,
-    draftManifestCode: get().generateDraftCode()
-  }),
+  setEtaOffsetMins: (mins) => set({ etaOffsetMins: mins }),
+  resetForm: () => set({ selectedHubId: 1, packageCount: 25, etaOffsetMins: 15, draftManifestCode: get().generateDraftCode() }),
 
+  // Delegates to global hub store — which then syncs back via addLog
   submitManifest: () => {
-    const { selectedHubId, packageCount, draftManifestCode, manifests, getSelectedHub, getVehicleType } = get();
-    
+    const { selectedHubId, packageCount, etaOffsetMins } = get();
     if (!selectedHubId) {
-      alert("Pilih Hub Tujuan terlebih dahulu.");
+      alert('Pilih Hub Tujuan terlebih dahulu.');
       return;
     }
-
-    const hub = getSelectedHub()!;
-    const now = new Date();
-    const formattedTime = `2026-09-${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-
-    const newManifest: ManifestLog = {
-      manifest_code: draftManifestCode,
-      destination_hub_code: hub.hub_code,
-      destination_hub_name: hub.hub_name,
-      total_packages: packageCount,
-      vehicle_type: getVehicleType(packageCount),
-      created_at: formattedTime,
-      hub_color: hub.hub_color,
-    };
-
-    set({
-      manifests: [newManifest, ...manifests],
-      selectedHubId: null,
-      packageCount: 25,
-      draftManifestCode: get().generateDraftCode(),
-      currentPage: 1, // Reset ke halaman 1 agar user melihat data barunya
-    });
-    
-    alert(`Skenario Manifest ${draftManifestCode} berhasil dibuat dengan ${packageCount} paket ke ${hub.hub_name}.`);
+    useHubStore.getState().submitManifest(packageCount, etaOffsetMins);
+    set({ selectedHubId: 1, packageCount: 25, etaOffsetMins: 15, draftManifestCode: get().generateDraftCode(), currentPage: 1 });
   },
 
-  // --- Actions: Log ---
   setSearchQuery: (query) => set({ searchQuery: query, currentPage: 1 }),
   setHubFilter: (hubCode) => set({ hubFilter: hubCode, currentPage: 1 }),
   setPage: (page) => set({ currentPage: page }),
 
-  // --- Actions: Modal ---
-  openDetail: (manifest) => {
-    // Generate random packages when detail is opened (simulation)
-    const suffix = manifest.manifest_code.split('-').pop() || '0000';
-    const packages = generateDummyPackages(manifest.total_packages, suffix);
-    
-    set({
-      isDetailOpen: true,
-      selectedManifest: manifest,
-      manifestPackages: packages,
-    });
-  },
-  
-  closeDetail: () => set({
-    isDetailOpen: false,
-    selectedManifest: null,
-    manifestPackages: [],
-  }),
+  openDetail: (manifest) => set({ isDetailOpen: true, selectedManifest: manifest }),
+  closeDetail: () => set({ isDetailOpen: false, selectedManifest: null }),
 
+  // ── Sync action (called by useHubStore) ──
+  addLog: (log) =>
+    set((state) => ({ manifests: [log, ...state.manifests], currentPage: 1 })),
 }));

@@ -1,7 +1,9 @@
 import { useInboundStore } from '../../store/useInboundStore';
 
 export default function InboundStatWidget() {
-  const { stats } = useInboundStore();
+  const { manifests } = useInboundStore();
+  const total_scheduled = manifests.length;
+  const arrived = manifests.filter(m => m.status === 'SUDAH_DITERIMA').length;
 
   return (
     <div className="rounded-2xl border border-surface-border bg-white shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
@@ -24,11 +26,11 @@ export default function InboundStatWidget() {
           </h2>
           <p className="mt-1 flex items-baseline gap-2">
             <span className="text-3xl font-bold tracking-tight text-gray-900">
-              {stats.total_scheduled} Truk
+              {total_scheduled} Truk
             </span>
             <span className="text-sm font-medium text-gray-500">Terjadwal</span>
             <span className="text-sm font-medium text-gray-400">
-              ({stats.arrived} Sudah Tiba di Hub)
+              ({arrived} Sudah Tiba di Hub)
             </span>
           </p>
         </div>

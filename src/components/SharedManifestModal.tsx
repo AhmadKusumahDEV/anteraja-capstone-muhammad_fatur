@@ -1,4 +1,4 @@
-import { useManifestStore } from '../../store/useManifestStore';
+import { useHubStore } from '../store/useHubStore';
 
 const SERVICE_BADGE_STYLES: Record<string, string> = {
   SAME_DAY: 'bg-anteraja-primary text-white',
@@ -6,8 +6,10 @@ const SERVICE_BADGE_STYLES: Record<string, string> = {
   REGULAR: 'bg-gray-200 text-gray-700',
 };
 
-export default function ManifestDetailModal() {
-  const { isDetailOpen, selectedManifest, manifestPackages, closeDetail } = useManifestStore();
+export default function SharedManifestModal() {
+  const { isDetailOpen, activeDetailManifest, closeDetailManifest } = useHubStore();
+
+  const selectedManifest = activeDetailManifest;
 
   if (!isDetailOpen || !selectedManifest) return null;
 
@@ -35,7 +37,7 @@ export default function ManifestDetailModal() {
               </p>
             </div>
           </div>
-          <button onClick={closeDetail} className="rounded-lg p-2 text-gray-400 hover:bg-gray-200 hover:text-gray-700 transition-colors">
+          <button onClick={closeDetailManifest} className="rounded-lg p-2 text-gray-400 hover:bg-gray-200 hover:text-gray-700 transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
             </svg>
@@ -48,24 +50,31 @@ export default function ManifestDetailModal() {
             <thead className="sticky top-0 bg-white shadow-sm z-10">
               <tr className="border-b border-gray-100">
                 <th scope="col" className="py-3 pl-6 pr-3 text-left text-[10px] font-bold uppercase tracking-widest text-gray-400">TRACKING ID</th>
+                <th scope="col" className="px-3 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-gray-400">TUJUAN</th>
                 <th scope="col" className="px-3 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-gray-400">SERVICE</th>
-                <th scope="col" className="px-3 py-3 text-center text-[10px] font-bold uppercase tracking-widest text-gray-400">BERAT</th>
                 <th scope="col" className="py-3 pl-3 pr-6 text-right text-[10px] font-bold uppercase tracking-widest text-gray-400">STATUS</th>
               </tr>
             </thead>
             <tbody>
-              {manifestPackages.map((pkg) => (
+              {selectedManifest.packages.map((pkg) => (
                 <tr key={pkg.tracking_id} className="border-b border-gray-50 hover:bg-gray-50/50">
                   <td className="py-3 pl-6 pr-3">
-                    <span className="font-mono text-xs font-bold text-gray-900">{pkg.tracking_id}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs font-bold text-gray-900">{pkg.tracking_id}</span>
+                      {pkg.is_priority && (
+                        <span className="inline-flex items-center rounded-sm bg-red-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-red-700">
+                          PRIORITAS
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-3 py-3">
+                    <span className="text-xs text-gray-600">{pkg.destination_area}</span>
                   </td>
                   <td className="px-3 py-3">
                     <span className={`inline-flex rounded-sm px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${SERVICE_BADGE_STYLES[pkg.service_type]}`}>
                       {pkg.service_type.replace('_', ' ')}
                     </span>
-                  </td>
-                  <td className="px-3 py-3 text-center">
-                    <span className="text-xs font-medium text-gray-600">{pkg.weight_kg} kg</span>
                   </td>
                   <td className="py-3 pl-3 pr-6 text-right">
                     <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-blue-700">
@@ -83,7 +92,7 @@ export default function ManifestDetailModal() {
         <div className="border-t border-gray-100 px-6 py-4 rounded-b-2xl bg-white flex justify-end">
           <button
             type="button"
-            onClick={closeDetail}
+            onClick={closeDetailManifest}
             className="rounded-xl bg-gray-100 px-6 py-2 text-sm font-bold text-gray-600 transition-colors hover:bg-gray-200"
           >
             Tutup Detail

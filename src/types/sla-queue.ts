@@ -2,7 +2,7 @@
 export type ServiceType = 'SAME_DAY' | 'NEXT_DAY' | 'REGULAR';
 export type SeverityZone = 'CRITICAL' | 'WARNING' | 'NORMAL';
 export type PackageStatus = 'IN_TRANSIT' | 'IN_HUB' | 'OUT_FOR_DELIVERY' | 'DELIVERED';
-export type CourierStatus = 'READY_NOW' | 'STANDBY' | 'ON_DUTY' | 'OFFLINE';
+export type CourierStatus = 'STANDBY' | 'ON_DUTY' | 'OFFLINE';
 export type FleetType = 'MOTORCYCLE' | 'VAN';
 export type StatusZone = 'NORMAL' | 'WARNING' | 'CRITICAL';
 

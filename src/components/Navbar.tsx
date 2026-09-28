@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useOutboundStore } from '../store/useOutboundStore';
 
@@ -11,6 +11,8 @@ const BREADCRUMB_MAP: Record<string, string> = {
 
 export default function Navbar() {
   const [currentTime, setCurrentTime] = useState<string>('');
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const currentPathLabel = BREADCRUMB_MAP[location.pathname] || 'Dashboard';
   const { openModal } = useOutboundStore();
@@ -32,6 +34,16 @@ export default function Navbar() {
     updateClock();
     const interval = setInterval(updateClock, 1000);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
+        setIsNotifOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   return (
@@ -67,20 +79,52 @@ export default function Navbar() {
           </time>
         </div>
 
-        {/* Notification Bell */}
-        <button
-          type="button"
-          className="relative rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
-          aria-label="Notifikasi"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
-          </svg>
-          {/* Notification badge placeholder */}
-          <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-sla-critical text-[10px] font-bold text-white" aria-label="24 notifikasi baru">
-            24
-          </span>
-        </button>
+        {/* Notifications */}
+        <div className="relative" ref={notifRef}>
+          <button
+            type="button"
+            onClick={() => setIsNotifOpen(!isNotifOpen)}
+            className="relative rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+          >
+            <span className="absolute right-1.5 top-1.5 flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-pink-400 opacity-75"></span>
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-anteraja-primary"></span>
+            </span>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+            </svg>
+          </button>
+
+          {/* Dropdown */}
+          {isNotifOpen && (
+            <div className="absolute right-0 mt-2 w-80 origin-top-right rounded-2xl bg-white p-2 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 animate-in fade-in slide-in-from-top-2">
+              <div className="px-4 py-2 border-b border-gray-100 flex justify-between items-center">
+                <h3 className="text-sm font-bold text-gray-900">Notifikasi</h3>
+                <span className="text-[10px] text-gray-400 font-medium cursor-pointer hover:text-anteraja-primary">Tandai dibaca</span>
+              </div>
+              <div className="max-h-64 overflow-y-auto p-1">
+                <div className="flex gap-3 p-3 hover:bg-gray-50 rounded-xl cursor-pointer">
+                  <div className="mt-1 h-2 w-2 bg-pink-500 rounded-full flex-shrink-0"></div>
+                  <div>
+                    <p className="text-xs font-semibold text-gray-900">120 Paket dari JKS-03 Tiba</p>
+                    <p className="text-[10px] text-gray-500 mt-0.5">Truk B 9912 XZ telah merapat ke dock Inbound.</p>
+                    <p className="text-[9px] text-gray-400 mt-1">Baru saja</p>
+                  </div>
+                </div>
+                <div className="flex gap-3 p-3 hover:bg-gray-50 rounded-xl cursor-pointer">
+                  <div className="mt-1 h-2 w-2 bg-orange-500 rounded-full flex-shrink-0"></div>
+                  <div>
+                    <p className="text-xs font-semibold text-gray-900">Peringatan: 5 Paket Mendekati SLA</p>
+                    <p className="text-[10px] text-gray-500 mt-0.5">Sisa waktu kurang dari 30 menit. Segera prioritaskan!</p>
+                    <p className="text-[9px] text-gray-400 mt-1">10 menit yang lalu</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+
 
         {/* Quick Dispatch CTA */}
         <button

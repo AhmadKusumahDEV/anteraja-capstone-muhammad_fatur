@@ -34,7 +34,7 @@ export default function OutboundStatCards() {
         <div className="mt-4 flex items-center gap-1.5 border-t border-gray-100 pt-3">
           <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden="true" />
           <span className="text-xs font-semibold text-emerald-700">
-            Siap Bertugas &amp; Terjadwal
+            Standby &amp; Sedang Mengantar
           </span>
         </div>
       </article>
@@ -50,7 +50,7 @@ export default function OutboundStatCards() {
               <span className="text-4xl font-bold tracking-tight text-gray-900">
                 {stats.ready_to_depart}
               </span>
-              <span className="text-sm font-medium text-gray-500">Batch</span>
+              <span className="text-sm font-medium text-gray-500">Manifest</span>
               <span className="text-sm font-medium text-gray-400">
                 ({stats.ready_to_depart_packages} Paket)
               </span>
@@ -90,7 +90,7 @@ export default function OutboundStatCards() {
               <span className="text-4xl font-bold tracking-tight text-gray-900">
                 {stats.in_delivery}
               </span>
-              <span className="text-sm font-medium text-gray-500">Batch</span>
+              <span className="text-sm font-medium text-gray-500">Manifest</span>
               <span className="text-sm font-medium text-gray-400">
                 ({stats.in_delivery_packages} Paket)
               </span>

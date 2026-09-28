@@ -1,5 +1,7 @@
 import InboundStatWidget from '../features/inbound/InboundStatWidget';
 import InboundTable from '../features/inbound/InboundTable';
+import HubCapacityCard from '../components/HubCapacityCard';
+import InboundConfirmModal from '../features/inbound/InboundConfirmModal';
 
 export default function Inbound() {
   return (
@@ -17,11 +19,16 @@ export default function Inbound() {
         </p>
       </div>
 
-      {/* Statistic Widget */}
-      <InboundStatWidget />
+      {/* Statistic Widgets */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <InboundStatWidget />
+        <HubCapacityCard />
+      </div>
 
       {/* Inbound Manifest Table */}
       <InboundTable />
+
+      <InboundConfirmModal />
     </section>
   );
 }

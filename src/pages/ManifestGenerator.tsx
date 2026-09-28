@@ -1,7 +1,6 @@
 import ManifestConfigForm from '../features/manifest/ManifestConfigForm';
 import ManifestPreview from '../features/manifest/ManifestPreview';
 import ManifestLogTable from '../features/manifest/ManifestLogTable';
-import ManifestDetailModal from '../features/manifest/ManifestDetailModal';
 
 export default function ManifestGenerator() {
   return (
@@ -36,9 +35,6 @@ export default function ManifestGenerator() {
         {/* Bottom Section: Log History */}
         <ManifestLogTable />
       </section>
-
-      {/* Detail Modal Portal */}
-      <ManifestDetailModal />
     </>
   );
 }

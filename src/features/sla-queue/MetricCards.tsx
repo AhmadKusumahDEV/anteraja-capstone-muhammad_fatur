@@ -1,30 +1,8 @@
 import { useSlaQueueStore } from '../../store/useSlaQueueStore';
+import HubCapacityCard from '../../components/HubCapacityCard';
 
 export default function MetricCards() {
   const { metrics } = useSlaQueueStore();
-
-  const gaugeColor =
-    metrics.capacity_percentage >= 100
-      ? 'bg-red-500'
-      : metrics.capacity_percentage >= 90
-        ? 'bg-amber-400'
-        : metrics.capacity_percentage >= 80
-          ? 'bg-yellow-400'
-          : 'bg-emerald-500';
-
-  const loadBadgeColor =
-    metrics.capacity_percentage >= 90
-      ? 'bg-amber-100 text-amber-700 ring-amber-200'
-      : metrics.capacity_percentage >= 80
-        ? 'bg-yellow-100 text-yellow-700 ring-yellow-200'
-        : 'bg-emerald-100 text-emerald-700 ring-emerald-200';
-
-  const loadBadgeLabel =
-    metrics.capacity_percentage >= 90
-      ? `HIGH LOAD (${metrics.capacity_percentage}%)`
-      : metrics.capacity_percentage >= 80
-        ? `WARNING (${metrics.capacity_percentage}%)`
-        : `NORMAL (${metrics.capacity_percentage}%)`;
 
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -82,43 +60,7 @@ export default function MetricCards() {
       </article>
 
       {/* Card 3 — Capacity Load Gauge */}
-      <article className="rounded-2xl border border-surface-border bg-white p-5 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
-        <div className="flex items-start justify-between">
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">
-            Capacity Load Gauge
-          </p>
-          <span
-            className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ring-1 ${loadBadgeColor}`}
-          >
-            {loadBadgeLabel}
-          </span>
-        </div>
-
-        <p className="mt-2 text-4xl font-bold text-amber-500 tabular-nums">
-          {metrics.total_load}
-          <span className="ml-1 text-base font-medium text-gray-400">
-            / {metrics.max_capacity} Max Capacity
-          </span>
-        </p>
-
-        {/* Progress Bar */}
-        <div className="mt-4">
-          <div className="h-2.5 w-full overflow-hidden rounded-full bg-gray-100">
-            <div
-              className={`h-full rounded-full transition-all duration-700 ${gaugeColor}`}
-              style={{ width: `${Math.min(metrics.capacity_percentage, 100)}%` }}
-              role="progressbar"
-              aria-valuenow={metrics.capacity_percentage}
-              aria-valuemin={0}
-              aria-valuemax={100}
-            />
-          </div>
-          <div className="mt-1 flex justify-between text-[10px] text-gray-400">
-            <span>0 PKG</span>
-            <span>{metrics.max_capacity} MAX</span>
-          </div>
-        </div>
-      </article>
+      <HubCapacityCard />
     </div>
   );
 }

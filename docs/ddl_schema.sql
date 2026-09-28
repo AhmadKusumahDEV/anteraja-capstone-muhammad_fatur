@@ -75,10 +75,9 @@ CREATE TABLE packages (
     current_hub_id VARCHAR(50) REFERENCES hubs(id) NOT NULL,
     destination_area VARCHAR(255), -- Dummy Routing MVP (Contoh: 'Jakarta Selatan')
     service_type service_level NOT NULL,
-    weight DECIMAL(10,2) NOT NULL, -- Contoh: 1.20
     status package_status NOT NULL,
-    hub_arrival_timestamp TIMESTAMP, -- Titik mulai indikator SLA di hub
-    sla_deadline TIMESTAMP, -- Batas waktu mutlak SLA
+    hub_arrival_timestamp TIMESTAMP,
+    sla_deadline TIMESTAMP,
     is_priority BOOLEAN DEFAULT false,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -111,3 +110,15 @@ CREATE TABLE courier_dispatches (
 CREATE INDEX idx_packages_status_hub ON packages(status, current_hub_id);
 CREATE INDEX idx_packages_sla_priority ON packages(is_priority DESC, sla_deadline ASC);
 CREATE INDEX idx_manifests_status_hub ON manifests(status, destination_hub_id);
+
+CREATE TYPE notification_type AS ENUM ('INFO', 'WARNING', 'CRITICAL', 'SUCCESS');
+
+CREATE TABLE hub_notifications (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    hub_id VARCHAR(50) REFERENCES hubs(id) NOT NULL,
+    title VARCHAR(100) NOT NULL,
+    message TEXT NOT NULL,
+    type notification_type DEFAULT 'INFO',
+    is_read BOOLEAN DEFAULT false,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

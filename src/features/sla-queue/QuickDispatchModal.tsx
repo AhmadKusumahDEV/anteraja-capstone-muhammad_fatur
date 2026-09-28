@@ -112,21 +112,18 @@ export default function QuickDispatchModal() {
           {/* Courier List */}
           <fieldset className="space-y-2">
             <legend className="sr-only">Pilih kurir</legend>
-            {couriers.map((courier) => (
+            {couriers.filter(c => c.status === 'STANDBY').map((courier) => (
               <label
                 key={courier.id}
                 htmlFor={`courier-${courier.id}`}
-                className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition-all ${
-                  selectedCourierId === courier.id
+                className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition-all ${selectedCourierId === courier.id
                     ? 'border-anteraja-primary bg-pink-50 ring-2 ring-anteraja-primary/20'
                     : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
-                }`}
+                  }`}
               >
                 {/* Avatar */}
                 <span
-                  className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white ${
-                    courier.status === 'READY_NOW' ? 'bg-anteraja-primary' : 'bg-gray-400'
-                  }`}
+                  className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-anteraja-primary text-xs font-bold text-white"
                   aria-hidden="true"
                 >
                   {courier.initials}
@@ -136,15 +133,9 @@ export default function QuickDispatchModal() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold text-gray-900">{courier.name}</span>
-                    {courier.status === 'READY_NOW' ? (
-                      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
-                        Ready Now
-                      </span>
-                    ) : (
-                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-500">
-                        Standby
-                      </span>
-                    )}
+                    <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+                      Stand By
+                    </span>
                   </div>
                   <p className="text-xs text-gray-400">
                     {FLEET_LABEL[courier.fleet_type]} • {courier.bay_location} • Berangkat est. 5 mnt

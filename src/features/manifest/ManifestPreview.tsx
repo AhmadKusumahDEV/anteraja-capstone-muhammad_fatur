@@ -1,9 +1,8 @@
 import { useManifestStore } from '../../store/useManifestStore';
 
 export default function ManifestPreview() {
-  const { packageCount, draftManifestCode, getSelectedHub, getVehicleType } = useManifestStore();
+  const { packageCount, draftManifestCode, getSelectedHub } = useManifestStore();
   const selectedHub = getSelectedHub();
-  const vehicle = getVehicleType(packageCount);
 
   return (
     <article className="flex h-full flex-col rounded-2xl border border-surface-border bg-white shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
@@ -27,7 +26,7 @@ export default function ManifestPreview() {
           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
             ESTIMASI KODE MANIFEST:
           </p>
-          <p className="mt-1 font-mono text-2xl font-bold tracking-tight text-anteraja-primary drop-shadow-[0_0_8px_rgba(209,0,104,0.4)]">
+          <p className="mt-1 font-mono text-2xl font-bold tracking-tight text-pink-400 drop-shadow-[0_0_8px_rgba(244,114,182,0.6)]">
             {draftManifestCode}
           </p>
         </div>
@@ -37,20 +36,20 @@ export default function ManifestPreview() {
           <div className="flex items-start justify-between border-b border-dashed border-gray-200 pb-4">
             <span className="text-gray-500">Rute Pengiriman:</span>
             <div className="text-right font-semibold text-gray-900">
-              HUB-JKS-01 
-              <span className="mx-2 text-gray-300">→</span> 
+              HUB-JKS-01
+              <span className="mx-2 text-gray-300">→</span>
               {selectedHub ? selectedHub.hub_code : <span className="text-gray-400 italic">Belum dipilih</span>}
             </div>
           </div>
-          
+
           <div className="flex items-start justify-between border-b border-dashed border-gray-200 pb-4">
             <span className="text-gray-500">Kuantitas Paket:</span>
             <span className="font-bold text-anteraja-primary">{packageCount} Paket Siap Muat</span>
           </div>
 
           <div className="flex items-start justify-between border-b border-dashed border-gray-200 pb-4">
-            <span className="text-gray-500">Armada Pengangkut:</span>
-            <span className="font-bold text-gray-900">{vehicle}</span>
+            <span className="text-gray-500">Tipe Pengiriman:</span>
+            <span className="font-bold text-gray-900">Pengiriman Reguler</span>
           </div>
 
           <div className="flex items-start justify-between pb-4">

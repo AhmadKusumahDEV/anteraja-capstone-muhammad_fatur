@@ -1,33 +1,32 @@
 import { create } from 'zustand';
-import { DUMMY_INBOUND_MANIFESTS, DUMMY_INBOUND_STATS } from '../data/inbound-dummy';
-import type { InboundManifest, InboundStats } from '../types/inbound';
+import type { InboundManifest, InboundManifestStatus } from '../types/hub';
+import { useHubStore } from './useHubStore';
 
-const ITEMS_PER_PAGE = 7; // Show 7 items as in the mockup for pagination demo
-const HUB_MAX_CAPACITY = 200; // Mock capacity limit for validation
+const ITEMS_PER_PAGE = 7;
 
 interface InboundState {
-  // Data
   manifests: InboundManifest[];
-  stats: InboundStats;
-  currentHubCapacity: number; // Simulate current packages in hub
-  
-  // UI State
   currentPage: number;
 
-  // Computed
   getPaginatedManifests: () => InboundManifest[];
   getTotalPages: () => number;
 
-  // Actions
   setPage: (page: number) => void;
-  acknowledgeManifest: (manifestCode: string, totalPackages: number) => void;
+  acknowledgeManifest: (manifestCode: string, _totalPackages: number) => void;
+
+  // Sync actions — called by useHubStore
+  addManifest: (manifest: InboundManifest) => void;
+  updateManifestStatus: (code: string, status: InboundManifestStatus) => void;
+  updateManifestEta: (code: string, etaMs: number) => void;
+
+  confirmingManifest: InboundManifest | null;
+  openConfirmModal: (manifest: InboundManifest) => void;
+  closeConfirmModal: () => void;
 }
 
 export const useInboundStore = create<InboundState>((set, get) => ({
-  manifests: DUMMY_INBOUND_MANIFESTS,
-  stats: DUMMY_INBOUND_STATS,
-  currentHubCapacity: 160, // Simulate the hub is near capacity to test the threshold (160/200)
-  
+  // Initialize with hub store seed data
+  manifests: useHubStore.getState().inboundManifests,
   currentPage: 1,
 
   getPaginatedManifests: () => {
@@ -37,33 +36,35 @@ export const useInboundStore = create<InboundState>((set, get) => ({
   },
 
   getTotalPages: () => {
-    const { manifests } = get();
-    return Math.max(1, Math.ceil(manifests.length / ITEMS_PER_PAGE));
+    return Math.max(1, Math.ceil(get().manifests.length / ITEMS_PER_PAGE));
   },
 
   setPage: (page) => set({ currentPage: page }),
 
-  acknowledgeManifest: (manifestCode, totalPackages) => {
-    const { manifests, stats, currentHubCapacity } = get();
+  confirmingManifest: null,
+  openConfirmModal: (manifest) => set({ confirmingManifest: manifest }),
+  closeConfirmModal: () => set({ confirmingManifest: null }),
 
-    // 1. Rigid Capacity Check (BR-06.1)
-    if (currentHubCapacity + totalPackages > HUB_MAX_CAPACITY) {
-      alert(`[ERROR: CAPACITY EXCEEDED]\n\nGagal mengonfirmasi manifes: Total paket (${currentHubCapacity} di Hub + ${totalPackages} di Manifes = ${currentHubCapacity + totalPackages}) melebihi kapasitas maksimal Hub (${HUB_MAX_CAPACITY} paket).`);
-      return;
-    }
-
-    // 2. State Mutation
-    set({
-      manifests: manifests.map((m) =>
-        m.manifest_code === manifestCode ? { ...m, status: 'SUDAH_DITERIMA' } : m
-      ),
-      stats: {
-        ...stats,
-        arrived: stats.arrived + 1,
-      },
-      currentHubCapacity: currentHubCapacity + totalPackages, // Increase hub load simulation
-    });
-    
-    alert(`Manifest ${manifestCode} berhasil dikonfirmasi. ${totalPackages} paket telah ditambahkan ke antrean In Hub.`);
+  // Delegates to global hub store
+  acknowledgeManifest: (manifestCode, _totalPackages) => {
+    useHubStore.getState().acknowledgeManifest(manifestCode);
   },
+
+  // ── Sync actions (called by useHubStore) ──
+  addManifest: (manifest) =>
+    set((state) => ({ manifests: [manifest, ...state.manifests] })),
+
+  updateManifestStatus: (code, status) =>
+    set((state) => ({
+      manifests: state.manifests.map((m) =>
+        m.manifest_code === code ? { ...m, status } : m
+      ),
+    })),
+
+  updateManifestEta: (code, etaMs) =>
+    set((state) => ({
+      manifests: state.manifests.map((m) =>
+        m.manifest_code === code ? { ...m, eta_timestamp: etaMs } : m
+      ),
+    })),
 }));
