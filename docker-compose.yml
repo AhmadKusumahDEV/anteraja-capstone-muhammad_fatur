@@ -10,10 +10,9 @@ services:
     ports:
       - "5176:80"
     networks:
-      - nginx-network
+      - frontend-net
 
 networks:
-  nginx-network:
-    external: true
-    name: nginx-network
-
+  frontend-net:
+    external: true          # Network ini sudah ada, dikelola oleh Nginx Anda
+    name: frontend-net     # Sesuaikan dengan nama network Nginx Anda (lihat: docker network ls)
