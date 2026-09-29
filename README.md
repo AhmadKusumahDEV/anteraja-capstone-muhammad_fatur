@@ -1,75 +1,41 @@
-# React + TypeScript + Vite
+# Anteraja Hub Admin Panel (Next Gen AI Academy)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplikasi operasional Hub Anteraja dengan UI interaktif, manajemen armada, SLA, dan integrasi Public API. 
 
-Currently, two official plugins are available:
+## 🏗️ Struktur Asynchronous Data Fetching & State Management
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Pada iterasi ini, aplikasi mengimplementasikan manajemen state asinkron menggunakan Custom Hooks dan Context API untuk memenuhi prinsip **Separation of Concerns (SoC)**.
 
-## React Compiler
+### 1. Context API (`AdminProvider`)
+`src/context/AdminContext.tsx`
+Context API digunakan sebagai *centralized store* untuk menghindari masalah *prop drilling* ketika membagikan state global ke berbagai komponen UI. 
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+**State yang dikelola:**
+- `adminProfile`: Menyimpan data profil Admin (nama, foto) hasil dari pemanggilan API eksternal.
+- `isAlarmMuted`: Menyimpan state pengaturan mute notifikasi kapasitas Hub (yang sebelumnya ada di Zustand, kini dimigrasi ke Context).
 
-## Expanding the ESLint configuration
+Komponen pembungkus `<AdminProvider>` diletakkan di tingkat teratas halaman aplikasi (`MainLayout.tsx`) sehingga *Navbar*, *Sidebar*, dan modul lainnya dapat mengakses `useAdminContext()` secara instan.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 2. Custom Hooks untuk Data Fetching
+Logika untuk menangani pemanggilan API asinkron dengan `useEffect` diabstraksikan ke dalam *hooks* yang reusable dan bersih.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+#### `useFetchData.ts`
+Custom Hook dasar (generik) yang dirancang agar kebal dari **memory leak** (melalui `AbortController`) dan **infinite re-render** (dependency array yang ketat pada `url`). 
+Hook ini me-*return* status standar: `data`, `isLoading`, `isError`, dan `error`.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+#### `useAdminProfile.ts`
+Hook ini menggunakan `useFetchData` untuk mengkonsumsi **RandomUser API** (`randomuser.me/api`) sebagai simulasi pemanggilan profil "Admin Budi" (termasuk foto avatar). Setelah data sukses di-*fetch*, datanya disimpan ke dalam Context `AdminProvider` agar bisa ditampilkan pada komponen `Sidebar.tsx`.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+#### `useHubWeather.ts`
+Hook ini memanfaatkan **Open-Meteo API** untuk mengambil kondisi cuaca dan temperatur langsung di koordinat lokasi Hub (misal: Jakarta Selatan). Data tersebut dikonsumsi oleh `Navbar.tsx` untuk menampilkan indikator widget cuaca yang dinamis kepada Admin. Widget cuaca juga menangani visual *loading spinner* atau pesan peringatan jika API gagal diakses.
 
-```
+## 🚀 Instalasi & Menjalankan
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
+1. Instalasi dependensi:
+   ```bash
+   npm install
+   ```
+2. Jalankan secara lokal:
+   ```bash
+   npm run dev
+   ```
