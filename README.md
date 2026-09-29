@@ -29,6 +29,29 @@ Hook ini menggunakan `useFetchData` untuk mengkonsumsi **RandomUser API** (`rand
 #### `useHubWeather.ts`
 Hook ini memanfaatkan **Open-Meteo API** untuk mengambil kondisi cuaca dan temperatur langsung di koordinat lokasi Hub (misal: Jakarta Selatan). Data tersebut dikonsumsi oleh `Navbar.tsx` untuk menampilkan indikator widget cuaca yang dinamis kepada Admin. Widget cuaca juga menangani visual *loading spinner* atau pesan peringatan jika API gagal diakses.
 
+## 🗺️ Route Map & SPA Routing (React Router DOM)
+
+Pada modul ini, aplikasi telah berevolusi menjadi **Single Page Application (SPA)** seutuhnya menggunakan `react-router-dom`. Transisi halaman tidak lagi memicu _full page reload_.
+
+### 1. Struktur Layout (Persistent UI)
+Semua halaman dibungkus oleh komponen `<MainLayout>`. Komponen ini mengandung *Sidebar* dan *Navbar* yang konstan/permanen. Konten halaman di-inject secara dinamis melalui komponen `<Outlet />` dari React Router. Hal ini sangat menghemat *resource* rendering karena antarmuka utama tidak di-*render* ulang dari nol.
+
+### 2. Daftar Route Utama
+```text
+/                      -> Redirect otomatis ke /sla-queue
+/sla-queue             -> Dashboard SlaQueue (SLA & Kinerja)
+/inbound               -> Manajemen Inbound Sorting & Fleet ACK
+/outbound              -> Manajemen Outbound Dispatch
+/manifest-generator    -> Pembuatan Data Manifest Eksternal
+/shipments/:id         -> Dynamic Route: Detail Manifest / Resi
+/*                     -> Catch-All: Halaman 404 Not Found
+```
+
+### 3. Dynamic Parameters & Programmatic Navigation
+- **`useParams`**: Digunakan di dalam halaman `/shipments/:id` (komponen `ShipmentDetail.tsx`). ID resi (misal: `MNF-2409-1234`) diambil dari parameter URL dan digunakan untuk mengambil data spesifik dari Context API / Global Store. Jika ID tidak valid, sistem memunculkan tampilan *Empty State* (Data Tidak Ditemukan).
+- **`useNavigate`**: Diterapkan pada komponen baris tabel (`InboundTableRow.tsx` dan `ManifestLogRow.tsx`) untuk memindahkan (navigasi) pengguna secara terprogram (*programmatic routing*) ke halaman detail resi setelah tombol "Detail" diklik, menggantikan sistem *Modal* sebelumnya. Juga digunakan untuk tombol "Kembali" (`navigate(-1)`).
+- **Fallback 404**: Jika pengguna memasukkan URL sembarangan, halaman `NotFound.tsx` yang interaktif akan muncul.
+
 ## 🚀 Instalasi & Menjalankan
 
 1. Instalasi dependensi:
