@@ -1,6 +1,8 @@
 import { NavLink } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import { useHubStore } from '../store/useHubStore';
+import { useAdminContext } from '../context/AdminContext';
+import { useAdminProfile } from '../hooks/useAdminProfile';
 import logoImg from '../assets/logo.png';
 
 /** Navigation menu items */
@@ -45,7 +47,12 @@ const NAV_ITEMS = [
 ] as const;
 
 export default function Sidebar() {
-  const { isMuted, toggleMute } = useHubStore();
+  // Pindahkan pengaturan mute dari HubStore ke AdminContext
+  const { isAlarmMuted, toggleAlarmMute, adminProfile } = useAdminContext();
+  
+  // Custom hook untuk melakukan fetch profile picture secara asynchronous
+  const { isLoading, isError } = useAdminProfile();
+
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
 
@@ -135,15 +142,32 @@ export default function Sidebar() {
           className="flex w-full items-center justify-between px-4 py-4 transition-colors hover:bg-sidebar-hover focus:outline-none"
         >
           <div className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-anteraja-primary to-purple-600 text-xs font-bold text-white" aria-hidden="true">
-              AB
-            </span>
+            {isLoading ? (
+              // Loading Spinner State
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-sidebar-hover">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-anteraja-primary border-t-transparent"></div>
+              </div>
+            ) : isError || !adminProfile ? (
+              // Error / Fallback State
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-gray-500 to-gray-700 text-xs font-bold text-white" aria-hidden="true">
+                AB
+              </span>
+            ) : (
+              // Success Data State
+              <img 
+                src={adminProfile.pictureUrl} 
+                alt="Profile" 
+                className="h-9 w-9 rounded-full object-cover shadow-sm"
+                crossOrigin="anonymous"
+              />
+            )}
+            
             <div className="flex flex-col overflow-hidden text-left">
               <span className="truncate text-sm font-semibold text-white">
-                Admin Budi
+                {adminProfile ? adminProfile.name : 'Admin Budi'}
               </span>
               <span className="flex items-center gap-1 truncate text-xs text-sidebar-text">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" aria-hidden="true" />
+                <span className={`h-1.5 w-1.5 rounded-full ${isLoading ? 'bg-yellow-400 animate-pulse' : isError ? 'bg-red-500' : 'bg-emerald-400'}`} aria-hidden="true" />
                 ID: ADM-102
               </span>
             </div>
@@ -159,11 +183,11 @@ export default function Sidebar() {
               </div>
               <button
                 type="button"
-                onClick={toggleMute}
+                onClick={toggleAlarmMute}
                 className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100"
               >
                 <div className="flex items-center gap-2">
-                  {isMuted ? (
+                  {isAlarmMuted ? (
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-500" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM12.293 7.293a1 1 0 011.414 0L15 8.586l1.293-1.293a1 1 0 111.414 1.414L16.414 10l1.293 1.293a1 1 0 01-1.414 1.414L15 11.414l-1.293 1.293a1 1 0 01-1.414-1.414L13.586 10l-1.293-1.293a1 1 0 010-1.414z" clipRule="evenodd" />
                     </svg>
@@ -175,8 +199,8 @@ export default function Sidebar() {
                   <span>Mute Alarm Kapasitas</span>
                 </div>
                 {/* Toggle UI */}
-                <div className={`relative inline-flex h-4 w-8 items-center rounded-full transition-colors ${isMuted ? 'bg-red-500' : 'bg-gray-300'}`}>
-                  <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${isMuted ? 'translate-x-4' : 'translate-x-1'}`} />
+                <div className={`relative inline-flex h-4 w-8 items-center rounded-full transition-colors ${isAlarmMuted ? 'bg-red-500' : 'bg-gray-300'}`}>
+                  <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${isAlarmMuted ? 'translate-x-4' : 'translate-x-1'}`} />
                 </div>
               </button>
 

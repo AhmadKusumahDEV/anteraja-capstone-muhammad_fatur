@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import cowwSoundUrl from '../assets/coww.mpeg';
 import { useHubStore } from '../store/useHubStore';
+import { useAdminContext } from '../context/AdminContext';
 
 export default function CapacityAlarm() {
-  const { hubCapacity, inboundManifests, isMuted, toggleMute } = useHubStore();
+  const { hubCapacity, inboundManifests } = useHubStore();
+  const { isAlarmMuted } = useAdminContext();
 
   const [showModal, setShowModal] = useState(false);
   const [isSnoozed, setIsSnoozed] = useState(false);
@@ -65,7 +67,7 @@ export default function CapacityAlarm() {
   }, [isOverload, showModal, isSnoozed, isDismissed]);
 
   useEffect(() => {
-    if (showModal && !isMuted) {
+    if (showModal && !isAlarmMuted) {
       const audio = new Audio(cowwSoundUrl);
       audio.loop = true;
       audio.play().catch((e) => console.error("Audio block oleh browser", e));
@@ -79,7 +81,7 @@ export default function CapacityAlarm() {
         audioRef.current = null;
       }
     };
-  }, [showModal, isMuted]);
+  }, [showModal, isAlarmMuted]);
 
   useEffect(() => {
     return () => {
