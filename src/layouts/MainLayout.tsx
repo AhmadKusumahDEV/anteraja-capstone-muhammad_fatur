@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import type { ReactNode } from 'react';
+import { Outlet } from 'react-router-dom';
 import { AdminProvider } from '../context/AdminContext';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
@@ -10,11 +10,7 @@ import { useHubStore } from '../store/useHubStore';
 import CapacityAlarm from '../components/CapacityAlarm';
 import { Toaster } from 'react-hot-toast';
 
-interface MainLayoutProps {
-  children: ReactNode;
-}
-
-export default function MainLayout({ children }: MainLayoutProps) {
+export default function MainLayout() {
   useEffect(() => {
     const interval = setInterval(() => {
       useHubStore.getState().tickSla();
@@ -41,7 +37,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
           {/* Page Content — scrollable area below navbar */}
           <main className="flex flex-1 flex-col pt-[var(--spacing-navbar)] bg-gray-50/30">
             <div className="flex-1 p-6">
-              {children}
+              <Outlet />
             </div>
             <Footer />
           </main>
