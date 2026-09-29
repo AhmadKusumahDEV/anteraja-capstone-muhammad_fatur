@@ -96,9 +96,6 @@ interface HubState {
   isDetailOpen: boolean;
   activeDetailManifest: ManifestLogEntry | InboundManifest | null;
 
-  isMuted: boolean; // Control global alarm sound
-  toggleMute: () => void;
-
   // Master actions — feature stores delegate here
   submitManifest: (packageCount: number, etaOffsetMins: number) => void;
   fastForwardManifest: (manifestCode: string) => void;
@@ -124,9 +121,6 @@ export const useHubStore = create<HubState>((set, get) => ({
   manifestLogs: SEED_MANIFEST_LOGS,
   isDetailOpen: false,
   activeDetailManifest: null,
-
-  isMuted: false,
-  toggleMute: () => set((state) => ({ isMuted: !state.isMuted })),
 
   // ── Submit new manifest (Manifest Generator → Inbound) ──
   submitManifest: (packageCount, etaOffsetMins) => {
