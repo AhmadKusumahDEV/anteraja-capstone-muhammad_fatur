@@ -1,6 +1,7 @@
 import type { InboundManifest } from '../../types/hub';
 import { useInboundStore } from '../../store/useInboundStore';
 import { useHubStore } from '../../store/useHubStore';
+import { useNavigate } from 'react-router-dom';
 
 interface Props {
   manifest: InboundManifest;
@@ -8,7 +9,8 @@ interface Props {
 
 export default function InboundTableRow({ manifest }: Props) {
   const { openConfirmModal } = useInboundStore();
-  const { openDetailManifest, fastForwardManifest } = useHubStore();
+  const { fastForwardManifest } = useHubStore();
+  const navigate = useNavigate();
 
   const isWaiting = manifest.status === 'MENUNGGU_KONFIRMASI';
   const isAccepted = manifest.status === 'SUDAH_DITERIMA';
@@ -98,7 +100,7 @@ export default function InboundTableRow({ manifest }: Props) {
         <div className="flex items-center justify-end gap-2">
           <button
             type="button"
-            onClick={() => openDetailManifest(manifest)}
+            onClick={() => navigate(`/shipments/${manifest.manifest_code}`)}
             className="inline-flex items-center gap-1.5 rounded-xl bg-gray-50 px-4 py-2 text-xs font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-200 transition-colors hover:bg-gray-100 active:scale-[0.97]"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">

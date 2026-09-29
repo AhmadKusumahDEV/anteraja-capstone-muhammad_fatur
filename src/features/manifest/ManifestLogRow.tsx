@@ -1,12 +1,12 @@
 import type { ManifestLogEntry } from '../../types/hub';
-import { useHubStore } from '../../store/useHubStore';
+import { useNavigate } from 'react-router-dom';
 
 interface Props {
   manifest: ManifestLogEntry;
 }
 
 export default function ManifestLogRow({ manifest }: Props) {
-  const { openDetailManifest } = useHubStore();
+  const navigate = useNavigate();
 
   return (
     <tr className="border-b border-gray-50 bg-white hover:bg-gray-50/50">
@@ -45,7 +45,7 @@ export default function ManifestLogRow({ manifest }: Props) {
       <td className="py-4 pl-3 pr-6 text-right">
         <button
           type="button"
-          onClick={() => openDetailManifest(manifest)}
+          onClick={() => navigate(`/shipments/${manifest.manifest_code}`)}
           className="inline-flex items-center gap-1.5 rounded-lg bg-anteraja-primary px-3 py-1.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-anteraja-primary-dark"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
