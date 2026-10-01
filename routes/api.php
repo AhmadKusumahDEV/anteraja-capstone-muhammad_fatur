@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GenerateManifestController;
 use App\Http\Controllers\Api\V1\HubController;
 use App\Http\Controllers\Api\V1\ManifestController;
+use App\Http\Controllers\Api\V1\AuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,20 +22,28 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::prefix('v1')->group(function () {
+    
+    // ── Public Routes ──────────────────────────────────────────
+    Route::post('/auth/login', [AuthController::class, 'login']);
 
-    // [Endpoint 1] GET /api/v1/hubs
-    // Mengisi dropdown hub di halaman Manifest Generator
-    Route::get('/hubs', [HubController::class, 'index']);
+    // ── Protected Routes (Butuh JWT) ───────────────────────────
+    Route::middleware('jwt.auth')->group(function () {
+        
+        // Auth / Session
+        Route::get('/auth/me', [AuthController::class, 'me']);
+        Route::post('/auth/refresh', [AuthController::class, 'refresh']);
+        Route::post('/auth/logout', [AuthController::class, 'logout']);
 
-    // [Endpoint 2] GET /api/v1/manifests
-    // Mengisi tabel riwayat log manifest (paginated, tanpa packages)
-    Route::get('/manifests', [ManifestController::class, 'index']);
+        // [Endpoint 1] GET /api/v1/hubs
+        Route::get('/hubs', [HubController::class, 'index']);
 
-    // [Endpoint 3] POST /api/v1/manifests/generate
-    // Generate manifest baru beserta packages (HARUS sebelum /{manifestCode} agar tidak tertangkap sebagai parameter)
-    Route::post('/manifests/generate', GenerateManifestController::class);
+        // [Endpoint 2] GET /api/v1/manifests
+        Route::get('/manifests', [ManifestController::class, 'index']);
 
-    // [Endpoint 4] GET /api/v1/manifests/{manifestCode}
-    // Mengambil detail manifest + semua packages (lazy/on-demand saat user klik baris)
-    Route::get('/manifests/{manifestCode}', [ManifestController::class, 'show']);
+        // [Endpoint 3] POST /api/v1/manifests/generate
+        Route::post('/manifests/generate', GenerateManifestController::class);
+
+        // [Endpoint 4] GET /api/v1/manifests/{manifestCode}
+        Route::get('/manifests/{manifestCode}', [ManifestController::class, 'show']);
+    });
 });
