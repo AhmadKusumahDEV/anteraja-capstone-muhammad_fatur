@@ -1,0 +1,474 @@
+================================================================================
+  PANDUAN IMPLEMENTASI AUTH (LOGIN) — FRONTEND REACT TS + VITE
+  Backend: Laravel 12 + JWT Auth
+  Update: 2026-10-01
+================================================================================
+
+DAFTAR ISI:
+  1. Ringkasan Perubahan
+  2. Base URL
+  3. Endpoint Auth Lengkap
+  4. Akun Test untuk Development
+  5. Implementasi Step-by-Step (React TS + Vite)
+  6. Catatan Penting
+
+================================================================================
+1. RINGKASAN PERUBAHAN
+================================================================================
+
+BREAKING CHANGE:
+- Semua endpoint API sekarang DILINDUNGI JWT (kecuali /auth/login)
+- Setiap request WAJIB kirim header: Authorization: Bearer <access_token>
+- Jika tidak ada token → response 401
+
+Yang TIDAK berubah:
+- URL path endpoint manifest, hubs → SAMA
+- Request body POST /manifests/generate → SAMA (tidak ada field baru/hilang)
+- Response shape semua endpoint → SAMA
+
+================================================================================
+2. BASE URL
+================================================================================
+
+Development : http://localhost:8000/api/v1
+Production  : http://<IP-VPS>:8000/api/v1
+
+================================================================================
+3. ENDPOINT AUTH LENGKAP
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+3a. LOGIN
+────────────────────────────────────────────────────────────────────────────────
+
+  URL     : POST /api/v1/auth/login
+  Auth    : TIDAK PERLU TOKEN
+  Headers :
+    Content-Type: application/json
+
+  Request Body (JSON):
+  {
+    "nik": "ADM-102",
+    "password": "password123"
+  }
+
+  Field       | Type   | Wajib | Keterangan
+  ------------|--------|-------|------------------------------------------
+  nik         | string | YA    | Nomor Induk Karyawan user
+  password    | string | YA    | Password plaintext
+
+  Response SUKSES (200):
+  {
+    "success": true,
+    "message": "Login berhasil.",
+    "data": {
+      "access_token": "eyJhbGciOiJIUzI1NiIs...",
+      "refresh_token": "eyJhbGciOiJIUzI1NiIs...",
+      "token_type": "Bearer",
+      "expires_in": 3600,
+      "user": {
+        "id": "USR-001",
+        "nik": "ADM-102",
+        "name": "Admin Budi",
+        "role": "HUB_ADMIN",
+        "hub_id": "HUB-JKS-01"
+      }
+    }
+  }
+
+  Keterangan field response:
+  - access_token  : Token utama, kirim di header setiap request
+  - refresh_token : Token untuk minta access_token baru saat expired
+  - token_type    : Selalu "Bearer"
+  - expires_in    : Masa berlaku access_token dalam DETIK (3600 = 1 jam)
+  - user          : Data user yang login (simpan di state/context)
+  - user.role     : "HUB_ADMIN" atau "SUPER_ADMIN"
+
+  Response GAGAL - Salah NIK/Password (401):
+  {
+    "success": false,
+    "message": "NIK atau password salah."
+  }
+
+  Response GAGAL - Validasi (422):
+  {
+    "message": "The nik field is required.",
+    "errors": {
+      "nik": ["NIK wajib diisi."],
+      "password": ["Password wajib diisi."]
+    }
+  }
+
+────────────────────────────────────────────────────────────────────────────────
+3b. GET USER INFO (CEK SIAPA YANG LOGIN)
+────────────────────────────────────────────────────────────────────────────────
+
+  URL     : GET /api/v1/auth/me
+  Auth    : WAJIB TOKEN
+  Headers :
+    Content-Type: application/json
+    Authorization: Bearer <access_token>
+
+  Request Body: TIDAK ADA (GET request)
+
+  Response SUKSES (200):
+  {
+    "success": true,
+    "data": {
+      "id": "USR-001",
+      "nik": "ADM-102",
+      "name": "Admin Budi",
+      "role": "HUB_ADMIN",
+      "hub_id": "HUB-JKS-01",
+      "created_at": "2026-09-30T10:00:00.000000Z",
+      "updated_at": "2026-09-30T10:00:00.000000Z"
+    }
+  }
+
+  Kapan pakai endpoint ini:
+  - Saat halaman pertama kali dimuat, untuk cek apakah token masih valid
+  - Untuk mengisi ulang user info di context/state setelah page refresh
+
+────────────────────────────────────────────────────────────────────────────────
+3c. REFRESH TOKEN (MINTA ACCESS TOKEN BARU)
+────────────────────────────────────────────────────────────────────────────────
+
+  URL     : POST /api/v1/auth/refresh
+  Auth    : WAJIB TOKEN (kirim REFRESH TOKEN, bukan access token)
+  Headers :
+    Content-Type: application/json
+    Authorization: Bearer <refresh_token>
+
+  Request Body: KOSONG {} atau tidak perlu body
+
+  Response SUKSES (200):
+  {
+    "success": true,
+    "message": "Token berhasil diperbarui.",
+    "data": {
+      "access_token": "eyJhbGciOiJIUzI1NiIs...(TOKEN BARU)",
+      "token_type": "Bearer",
+      "expires_in": 3600
+    }
+  }
+
+  Kapan pakai:
+  - Saat mendapat response 401 "token expired" dari endpoint manapun
+  - JANGAN panggil manual, biarkan axios interceptor yang handle otomatis
+
+  Jika refresh juga gagal (401):
+  - Berarti refresh token juga expired → redirect user ke /login
+
+────────────────────────────────────────────────────────────────────────────────
+3d. LOGOUT
+────────────────────────────────────────────────────────────────────────────────
+
+  URL     : POST /api/v1/auth/logout
+  Auth    : WAJIB TOKEN
+  Headers :
+    Content-Type: application/json
+    Authorization: Bearer <access_token>
+
+  Request Body: KOSONG {} atau tidak perlu body
+
+  Response SUKSES (200):
+  {
+    "success": true,
+    "message": "Berhasil logout."
+  }
+
+  Setelah logout:
+  - Hapus access_token dan refresh_token dari localStorage
+  - Clear user state/context
+  - Redirect ke halaman /login
+
+================================================================================
+4. AKUN TEST UNTUK DEVELOPMENT
+================================================================================
+
+  NIK       | Password       | Role         | Hub
+  ----------|----------------|--------------|------------------
+  ADM-102   | password123    | HUB_ADMIN    | HUB-JKS-01
+  SUP-001   | superadmin123  | SUPER_ADMIN  | null (semua hub)
+
+================================================================================
+5. IMPLEMENTASI STEP-BY-STEP (REACT TS + VITE)
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 1: Install axios (jika belum)
+────────────────────────────────────────────────────────────────────────────────
+
+  npm install axios
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 2: Buat file src/lib/api.ts (Axios instance + interceptors)
+────────────────────────────────────────────────────────────────────────────────
+
+  import axios from 'axios';
+
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+
+  const api = axios.create({
+    baseURL: API_BASE_URL,
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  // REQUEST INTERCEPTOR: otomatis tambahkan token ke setiap request
+  api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  });
+
+  // RESPONSE INTERCEPTOR: otomatis refresh token saat 401
+  api.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+      const originalRequest = error.config;
+
+      // Jika 401 dan belum pernah retry
+      if (error.response?.status === 401 && !originalRequest._retry) {
+        originalRequest._retry = true;
+
+        try {
+          const refreshToken = localStorage.getItem('refresh_token');
+          if (!refreshToken) throw new Error('No refresh token');
+
+          // Panggil refresh endpoint dengan refresh_token
+          const { data } = await axios.post(
+            `${API_BASE_URL}/auth/refresh`,
+            {},
+            { headers: { Authorization: `Bearer ${refreshToken}` } }
+          );
+
+          // Simpan token baru
+          localStorage.setItem('access_token', data.data.access_token);
+
+          // Retry request yang gagal tadi dengan token baru
+          originalRequest.headers.Authorization = `Bearer ${data.data.access_token}`;
+          return api(originalRequest);
+
+        } catch (refreshError) {
+          // Refresh gagal → hapus semua token, redirect ke login
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          window.location.href = '/login';
+          return Promise.reject(refreshError);
+        }
+      }
+
+      return Promise.reject(error);
+    }
+  );
+
+  export default api;
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 3: Buat file src/types/auth.ts (TypeScript interfaces)
+────────────────────────────────────────────────────────────────────────────────
+
+  export interface LoginRequest {
+    nik: string;
+    password: string;
+  }
+
+  export interface UserInfo {
+    id: string;
+    nik: string;
+    name: string;
+    role: 'HUB_ADMIN' | 'SUPER_ADMIN';
+    hub_id: string | null;
+  }
+
+  export interface LoginResponse {
+    success: boolean;
+    message: string;
+    data: {
+      access_token: string;
+      refresh_token: string;
+      token_type: string;
+      expires_in: number;
+      user: UserInfo;
+    };
+  }
+
+  export interface RefreshResponse {
+    success: boolean;
+    message: string;
+    data: {
+      access_token: string;
+      token_type: string;
+      expires_in: number;
+    };
+  }
+
+  export interface ApiError {
+    success?: boolean;
+    message?: string;
+    error?: string;
+    errors?: Record<string, string[]>;
+  }
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 4: Buat file src/services/authService.ts
+────────────────────────────────────────────────────────────────────────────────
+
+  import api from '../lib/api';
+  import type { LoginRequest, LoginResponse, UserInfo } from '../types/auth';
+
+  export const authService = {
+
+    async login(payload: LoginRequest): Promise<LoginResponse> {
+      const { data } = await api.post<LoginResponse>('/auth/login', payload);
+
+      if (data.success) {
+        localStorage.setItem('access_token', data.data.access_token);
+        localStorage.setItem('refresh_token', data.data.refresh_token);
+      }
+
+      return data;
+    },
+
+    async me(): Promise<UserInfo> {
+      const { data } = await api.get<{ success: boolean; data: UserInfo }>('/auth/me');
+      return data.data;
+    },
+
+    async logout(): Promise<void> {
+      try {
+        await api.post('/auth/logout');
+      } finally {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+      }
+    },
+
+    isAuthenticated(): boolean {
+      return !!localStorage.getItem('access_token');
+    },
+  };
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 5: Buat file .env di root project Vite
+────────────────────────────────────────────────────────────────────────────────
+
+  VITE_API_URL=http://localhost:8000/api/v1
+
+  Untuk production:
+  VITE_API_URL=http://<IP-VPS>:8000/api/v1
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 6: Contoh penggunaan di halaman Login (src/pages/LoginPage.tsx)
+────────────────────────────────────────────────────────────────────────────────
+
+  import { useState } from 'react';
+  import { useNavigate } from 'react-router-dom';
+  import { authService } from '../services/authService';
+
+  export default function LoginPage() {
+    const navigate = useNavigate();
+    const [nik, setNik] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const handleLogin = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setLoading(true);
+      setError('');
+
+      try {
+        const result = await authService.login({ nik, password });
+
+        if (result.success) {
+          // Simpan user ke global state/context kalau perlu
+          // setUser(result.data.user);
+          navigate('/dashboard');
+        }
+      } catch (err: any) {
+        const msg =
+          err.response?.data?.message ||
+          err.response?.data?.error ||
+          'Terjadi kesalahan. Coba lagi.';
+        setError(msg);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    return (
+      <form onSubmit={handleLogin}>
+        <input
+          type="text"
+          placeholder="NIK"
+          value={nik}
+          onChange={(e) => setNik(e.target.value)}
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        {error && <p style={{ color: 'red' }}>{error}</p>}
+        <button type="submit" disabled={loading}>
+          {loading ? 'Loading...' : 'Login'}
+        </button>
+      </form>
+    );
+  }
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 7: Panggil endpoint yang sudah ada (contoh: Generate Manifest)
+────────────────────────────────────────────────────────────────────────────────
+
+  TIDAK ADA PERUBAHAN dari kode yang sudah ada!
+  Token otomatis ditambahkan oleh interceptor di src/lib/api.ts
+
+  Contoh:
+  import api from '../lib/api';
+
+  const generateManifest = async (payload: {
+    destination_hub_id: string;
+    total_packages: number;
+    eta_offset_minutes: number;
+  }) => {
+    const { data } = await api.post('/manifests/generate', payload);
+    return data;
+  };
+
+================================================================================
+6. CATATAN PENTING
+================================================================================
+
+a) CORS:
+   Jika frontend dan backend berjalan di domain/port berbeda,
+   pastikan backend sudah setting CORS.
+   Laravel sudah ada config/cors.php bawaan, seharusnya sudah aman.
+
+b) ERROR HANDLING:
+   Response 401 dari middleware JWT menggunakan key "error":
+     { "success": false, "error": "Unauthorized: token expired" }
+
+   Response 401 dari endpoint login menggunakan key "message":
+     { "success": false, "message": "NIK atau password salah." }
+
+   Jadi di frontend, handle KEDUANYA:
+     const errorMsg = err.response?.data?.message || err.response?.data?.error;
+
+c) TOKEN STORAGE:
+   Saat ini contoh menggunakan localStorage.
+   Jika butuh keamanan lebih tinggi, bisa pakai httpOnly cookie
+   (tapi perlu perubahan di backend juga).
+
+d) PROTECTED ROUTE DI REACT:
+   Buat PrivateRoute component yang cek authService.isAuthenticated()
+   sebelum render halaman. Jika false, redirect ke /login.
+
+e) MASA BERLAKU TOKEN:
+   - Access Token  : 60 menit (1 jam)
+   - Refresh Token : 7 hari (10080 menit)
+   Setelah 7 hari tanpa aktivitas, user harus login ulang.
