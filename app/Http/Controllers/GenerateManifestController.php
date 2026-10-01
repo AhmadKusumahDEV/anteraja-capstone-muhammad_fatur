@@ -23,15 +23,15 @@ class GenerateManifestController extends Controller
      */
     public function __invoke(GenerateManifestRequest $request): JsonResponse
     {
-        DB::beginTransaction();
-
         try {
-            // Langkah 1 — Hitung variabel
+            // Langkah 1 — Hitung variabel & Pre-fetch data sebelum transaction
             $manifest_code = $request->manifest_code
                 ?? ('MNF-INB-' . date('Ymd') . '-' . rand(1000, 9999));
 
             $eta_timestamp = now()->addMinutes($request->eta_offset_minutes);
 
+            $destination_hub = Hub::find($request->destination_hub_id);
+            
             /** @var Hub|null $origin_hub */
             $origin_hub = Hub::where('id', '!=', $request->destination_hub_id)
                 ->inRandomOrder()
@@ -39,25 +39,13 @@ class GenerateManifestController extends Controller
 
             // Fallback jika hanya ada 1 hub di database
             $origin_hub_id   = $origin_hub ? $origin_hub->id       : 'HUB-DEFAULT-01';
-            $origin_hub_name = $origin_hub ? $origin_hub->name      : 'Default Origin Hub';
+            $origin_hub_name = $origin_hub ? $origin_hub->name     : 'Default Origin Hub';
             $origin_region   = $origin_hub ? $origin_hub->region_name : 'Unknown';
 
             $total_packages = $request->total_packages;
             $vehicle_type   = $total_packages <= 50 ? 'VAN' : 'TRUCK';
 
-            // Langkah 2 — Insert ke tabel manifests
-            $manifest = Manifest::create([
-                'manifest_code'      => $manifest_code,
-                'type'               => 'INBOUND_FEEDER',
-                'origin_hub_id'      => $origin_hub_id,
-                'destination_hub_id' => $request->destination_hub_id,
-                'vehicle_plate'      => 'B ' . rand(1000, 9999) . ' XYZ',
-                'vehicle_type'       => $vehicle_type,
-                'status'             => 'MENUNGGU_KEDATANGAN',
-                'eta_timestamp'      => $eta_timestamp,
-            ]);
-
-            // Langkah 3 — Batch insert ke tabel packages & manifest_packages
+            // Langkah 2 — Build array packages di memory (O(n) cepat di PHP)
             $packagesData       = [];
             $manifestPivotData  = [];
             $serviceTypes       = ['SAME_DAY', 'NEXT_DAY', 'REGULAR'];
@@ -72,7 +60,7 @@ class GenerateManifestController extends Controller
                 $packagesData[] = [
                     'tracking_id'      => $tracking_id,
                     'current_hub_id'   => $origin_hub_id,
-                    'destination_area' => $origin_region, // dinamis dari origin hub, bukan hardcoded
+                    'destination_area' => $origin_region,
                     'service_type'     => $service_type,
                     'status'           => 'IN_TRANSIT',
                     'is_priority'      => $is_priority,
@@ -88,13 +76,7 @@ class GenerateManifestController extends Controller
                 ];
             }
 
-            // Batch insert — satu query untuk semua paket (jauh lebih efisien dari loop create())
-            Package::insert($packagesData);
-            ManifestPackage::insert($manifestPivotData);
-
-            DB::commit();
-
-            // Format packages untuk response
+            // Format packages untuk response (bisa dilakukan sebelum insert, mengurangi durasi lock)
             $formattedPackages = array_map(fn ($pkg) => [
                 'tracking_id'      => $pkg['tracking_id'],
                 'service_type'     => $pkg['service_type'],
@@ -102,9 +84,31 @@ class GenerateManifestController extends Controller
                 'destination_area' => $pkg['destination_area'],
             ], $packagesData);
 
-            // Ambil destination hub name untuk response
-            $destination_hub = Hub::find($request->destination_hub_id);
+            // Langkah 3 — Transaction untuk insert (Lock lebih pendek & Chunked)
+            DB::beginTransaction();
 
+            $manifest = Manifest::create([
+                'manifest_code'      => $manifest_code,
+                'type'               => 'INBOUND_FEEDER',
+                'origin_hub_id'      => $origin_hub_id,
+                'destination_hub_id' => $request->destination_hub_id,
+                'vehicle_plate'      => 'B ' . rand(1000, 9999) . ' XYZ',
+                'vehicle_type'       => $vehicle_type,
+                'status'             => 'MENUNGGU_KEDATANGAN',
+                'eta_timestamp'      => $eta_timestamp,
+            ]);
+
+            // Chunked insert: memecah insert menjadi per 50 rows via raw query
+            foreach (array_chunk($packagesData, 50) as $chunk) {
+                DB::table('packages')->insert($chunk);
+            }
+            foreach (array_chunk($manifestPivotData, 50) as $chunk) {
+                DB::table('manifest_packages')->insert($chunk);
+            }
+
+            DB::commit();
+
+            // Format dan return response
             return response()->json([
                 'success' => true,
                 'message' => 'Manifest berhasil di-generate.',

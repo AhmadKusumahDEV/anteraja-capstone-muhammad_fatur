@@ -14,7 +14,7 @@ services:
       DB_DATABASE: mydatabase
       DB_USERNAME: main
       DB_PASSWORD: example
-    command: sh -c "composer install && chmod -R 775 storage bootstrap/cache && chown -R www-data:www-data storage bootstrap/cache && php artisan key:generate && php artisan migrate --force && php artisan db:seed --force"
+    command: sh -c "composer install && [ -f .env ] || cp .env.example .env && chmod -R 775 storage bootstrap/cache && chown -R www-data:www-data storage bootstrap/cache && php artisan key:generate --force && php artisan migrate --force && php artisan db:seed --force"
     depends_on:
       postgres_db_anteraja:
         condition: service_healthy
@@ -34,6 +34,7 @@ services:
     environment:
       DB_CONNECTION: pgsql
       DB_HOST: postgres_db_anteraja
+      # DB_HOST: host.docker.internal
       DB_PORT: 5432
       DB_DATABASE: mydatabase
       DB_USERNAME: main
