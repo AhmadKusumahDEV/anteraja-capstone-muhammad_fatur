@@ -21,36 +21,6 @@ services:
     networks:
       - backend-net
 
-  app:
-    build:
-      context: .
-      dockerfile: docker/php/Dockerfile
-    container_name: anteraja_server
-    restart: unless-stopped
-    user: www-data
-    working_dir: /var/www/html
-    volumes:
-      - ./:/var/www/html
-    environment:
-      DB_CONNECTION: pgsql
-      DB_HOST: postgres_db_anteraja
-      DB_PORT: 5432
-      DB_DATABASE: mydatabase
-      DB_USERNAME: main
-      DB_PASSWORD: example
-    depends_on:
-      app_setup:
-        condition: service_completed_successfully
-      postgres_db_anteraja:
-        condition: service_healthy
-    networks:
-      - backend-net
-    command: ["php", "artisan", "migrate", "--force", "--seed"]
-    restart: "no"
-    depends_on:
-      postgres_db_anteraja:
-        condition: service_healthy
-
   # 4. Aplikasi Backend Utama (PHP-FPM)
   app:
     image: anteraja-php:${IMAGE_TAG:-latest}
@@ -185,6 +155,4 @@ networks:
 
 volumes:
   postgres_data_anter_aja:
-    driver: local
-  storage_data:
-  redis_data_anter_aja:
+        driver: local

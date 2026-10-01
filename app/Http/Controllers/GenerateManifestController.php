@@ -3,13 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\GenerateManifestRequest;
-use App\Http\Requests\GenerateManifestRequest;
 use App\Models\Hub;
 use App\Models\Manifest;
 use App\Models\ManifestPackage;
-use App\Models\ManifestPackage;
 use App\Models\Package;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
@@ -86,7 +83,6 @@ class GenerateManifestController extends Controller
                     'updated_at'       => $now,
                 ];
 
-                $manifestPivotData[] = [
                 $manifestPivotData[] = [
                     'manifest_code' => $manifest_code,
                     'tracking_id'   => $tracking_id,
