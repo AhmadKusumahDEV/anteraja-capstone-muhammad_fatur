@@ -1,25 +1,49 @@
 version: '3.8'
 
 services:
-  app:
+  app_setup:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
-    container_name: anteraja_app
-    restart: unless-stopped
+    container_name: anteraja_app_setup
     working_dir: /var/www/html
     volumes:
       - ./:/var/www/html
     environment:
       DB_CONNECTION: pgsql
-      DB_HOST: postgres_db
+      DB_HOST: postgres_db_anteraja
       DB_PORT: 5432
       DB_DATABASE: mydatabase
       DB_USERNAME: main
       DB_PASSWORD: example
-    command: sh -c "php artisan migrate --force --seed && php-fpm"
+    command: sh -c "composer install && chmod -R 775 storage bootstrap/cache && chown -R www-data:www-data storage bootstrap/cache && php artisan key:generate && php artisan migrate --force && php artisan db:seed --force"
     depends_on:
-      postgres_db:
+      postgres_db_anteraja:
+        condition: service_healthy
+    networks:
+      - backend-net
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: anteraja_server
+    restart: unless-stopped
+    user: www-data
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres_db_anteraja
+      DB_PORT: 5432
+      DB_DATABASE: mydatabase
+      DB_USERNAME: main
+      DB_PASSWORD: example
+    depends_on:
+      app_setup:
+        condition: service_completed_successfully
+      postgres_db_anteraja:
         condition: service_healthy
     networks:
       - backend-net
@@ -38,9 +62,9 @@ services:
     networks:
       - backend-net
 
-  postgres_db:
+  postgres_db_anteraja:
     image: postgres:15-alpine
-    container_name: postgres_db
+    container_name: postgres_db_anteraja
     restart: unless-stopped
     environment:
       - POSTGRES_USER=main
@@ -60,7 +84,6 @@ services:
 
 networks:
   backend-net:
-    external: true
     name: backend-net
 
 volumes:

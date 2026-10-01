@@ -9,7 +9,8 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('hub_notifications', function (Blueprint $table) {
+        if (!Schema::hasTable('hub_notifications')) {
+            Schema::create('hub_notifications', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('hub_id', 50);
             $table->string('title', 100);
@@ -21,6 +22,7 @@ return new class extends Migration
             
             $table->timestamps();
         });
+        }
     }
 
     public function down()

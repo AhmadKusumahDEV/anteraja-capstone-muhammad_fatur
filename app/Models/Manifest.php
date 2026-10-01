@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\ManifestStatusEnum;
+use App\Enums\ManifestTypeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -9,13 +11,15 @@ class Manifest extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'manifest_code';
-    public $incrementing = false;
-    protected $keyType = 'string';
+    protected $primaryKey  = 'manifest_code';
+    public    $incrementing = false;
+    protected $keyType     = 'string';
 
     protected $guarded = [];
 
     protected $casts = [
+        'type'          => ManifestTypeEnum::class,
+        'status'        => ManifestStatusEnum::class,
         'eta_timestamp' => 'datetime',
     ];
 

@@ -8,7 +8,8 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('courier_dispatches', function (Blueprint $table) {
+        if (!Schema::hasTable('courier_dispatches')) {
+            Schema::create('courier_dispatches', function (Blueprint $table) {
             $table->string('dispatch_id', 50)->primary();
             $table->string('courier_id', 50);
             $table->string('manifest_code', 50);
@@ -21,6 +22,7 @@ return new class extends Migration
             
             $table->timestamps();
         });
+        }
     }
 
     public function down()

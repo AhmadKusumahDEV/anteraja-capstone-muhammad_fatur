@@ -8,7 +8,8 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('couriers', function (Blueprint $table) {
+        if (!Schema::hasTable('couriers')) {
+            Schema::create('couriers', function (Blueprint $table) {
             $table->string('id', 50)->primary();
             $table->string('name', 255);
             $table->enum('fleet_type', ['MOTORCYCLE', 'VAN']);
@@ -17,6 +18,7 @@ return new class extends Migration
             $table->foreign('current_hub_id')->references('id')->on('hubs')->onDelete('set null');
             $table->timestamps();
         });
+        }
     }
 
     public function down()

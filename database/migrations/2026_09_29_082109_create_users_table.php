@@ -8,7 +8,8 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('users', function (Blueprint $table) {
+        if (!Schema::hasTable('users')) {
+            Schema::create('users', function (Blueprint $table) {
             $table->string('id', 50)->primary();
             $table->string('nik', 50)->unique();
             $table->string('name', 255);
@@ -18,6 +19,7 @@ return new class extends Migration
             $table->text('password_hash');
             $table->timestamps();
         });
+        }
     }
 
     public function down()
