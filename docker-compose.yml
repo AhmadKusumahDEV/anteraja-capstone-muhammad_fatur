@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   app_setup:
     build:
@@ -88,3 +86,4 @@ networks:
 
 volumes:
   postgres_data_anter_aja:
+        driver: local
