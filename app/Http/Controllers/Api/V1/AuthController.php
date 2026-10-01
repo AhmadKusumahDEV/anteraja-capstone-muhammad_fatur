@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
@@ -27,16 +26,13 @@ class AuthController extends Controller
             ], 401);
         }
 
-        /** @var \Tymon\JWTAuth\JWTGuard $guard */
-        $guard = auth('api');
-
         // Generate Access Token (60 menit default)
-        $accessToken = $guard->login($user);
+        $accessToken = JWTAuth::fromUser($user);
 
         // Generate Refresh Token (custom claims type = refresh, TTL lebih lama misal 7 hari)
-        $refreshToken = $guard->claims(['type' => 'refresh'])
+        $refreshToken = JWTAuth::claims(['type' => 'refresh'])
             ->setTTL(config('jwt.refresh_ttl', 10080))
-            ->login($user);
+            ->fromUser($user);
 
         return response()->json([
             'success' => true,
@@ -71,71 +67,25 @@ class AuthController extends Controller
     }
 
     /**
-     * Refresh access token menggunakan refresh_token.
-     * Dikirim melalui Body: { "refresh_token": "..." }
+     * Refresh access token.
      */
-    public function refresh(Request $request): JsonResponse
+    public function refresh(): JsonResponse
     {
-        $refreshToken = $request->input('refresh_token');
-        
-        if (!$refreshToken) {
-            return response()->json([
-                'success' => false, 
-                'message' => 'Refresh token tidak disertakan dalam request body.'
-            ], 400);
-        }
-
         try {
-            // Set token yang akan diparse menjadi refresh token dari input
-            JWTAuth::setToken($refreshToken);
-            
-            // Ambil payload untuk memastikan ini benar-benar refresh token
-            $payload = JWTAuth::getPayload();
-            if ($payload->get('type') !== 'refresh') {
-                return response()->json([
-                    'success' => false, 
-                    'message' => 'Token yang diberikan bukan refresh token.'
-                ], 401);
-            }
-
-            // Ambil user dari token
-            $user = JWTAuth::authenticate();
-            if (!$user) {
-                return response()->json([
-                    'success' => false, 
-                    'message' => 'User tidak ditemukan.'
-                ], 404);
-            }
-
-            // Invalidate the old refresh token (Token Rotation - sangat disarankan)
-            JWTAuth::invalidate();
-
-            /** @var \Tymon\JWTAuth\JWTGuard $guard */
-            $guard = auth('api');
-
-            // Generate Access Token baru
-            $newAccessToken = $guard->login($user);
-
-            // Generate Refresh Token baru
-            $newRefreshToken = $guard->claims(['type' => 'refresh'])
-                ->setTTL(config('jwt.refresh_ttl', 10080))
-                ->login($user);
-
+            $newToken = auth('api')->refresh();
             return response()->json([
                 'success' => true,
                 'message' => 'Token berhasil diperbarui.',
                 'data'    => [
-                    'access_token'  => $newAccessToken,
-                    'refresh_token' => $newRefreshToken,
-                    'token_type'    => 'Bearer',
-                    'expires_in'    => config('jwt.ttl') * 60,
+                    'access_token' => $newToken,
+                    'token_type'   => 'Bearer',
+                    'expires_in'   => config('jwt.ttl') * 60,
                 ],
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Refresh token tidak valid atau sudah kedaluwarsa.',
+                'message' => 'Tidak dapat memperbarui token: ' . $e->getMessage(),
             ], 401);
         }
     }
@@ -146,9 +96,7 @@ class AuthController extends Controller
     public function logout(): JsonResponse
     {
         try {
-            /** @var \Tymon\JWTAuth\JWTGuard $guard */
-            $guard = auth('api');
-            $guard->logout();
+            auth('api')->logout();
             return response()->json([
                 'success' => true,
                 'message' => 'Berhasil logout.',

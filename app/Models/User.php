@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-
+use Laravel\Sanctum\HasApiTokens;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject
@@ -66,5 +66,30 @@ class User extends Authenticatable implements JWTSubject
     public function hub()
     {
         return $this->belongsTo(Hub::class, 'hub_id', 'id');
+    }
+
+    /**
+     * Identifier yang disimpan di claim "sub" JWT.
+     */
+    public function getJWTIdentifier(): mixed
+    {
+        return $this->getKey();
+    }
+
+    /**
+     * Custom claims yang ditambahkan ke payload JWT.
+     * Mengadopsi struktur JwtUsersInfo dari backend Go.
+     */
+    public function getJWTCustomClaims(): array
+    {
+        return [
+            'user_info' => [
+                'user_id' => $this->id,
+                'nik'     => $this->nik,
+                'name'    => $this->name,
+                'role'    => $this->role,
+                'hub_id'  => $this->hub_id,
+            ],
+        ];
     }
 }
