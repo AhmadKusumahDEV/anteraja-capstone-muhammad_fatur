@@ -8,7 +8,8 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('hubs', function (Blueprint $table) {
+        if (!Schema::hasTable('hubs')) {
+            Schema::create('hubs', function (Blueprint $table) {
             $table->string('id', 50)->primary();
             $table->string('name', 255);
             $table->string('region_name', 100);
@@ -17,6 +18,7 @@ return new class extends Migration
             $table->string('timezone', 50);
             $table->timestamps();
         });
+        }
     }
 
     public function down()

@@ -8,7 +8,8 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('manifests', function (Blueprint $table) {
+        if (!Schema::hasTable('manifests')) {
+            Schema::create('manifests', function (Blueprint $table) {
             $table->string('manifest_code', 50)->primary();
             $table->enum('type', ['INBOUND_FEEDER', 'OUTBOUND_DISPATCH']);
             $table->string('origin_hub_id', 50);
@@ -34,6 +35,7 @@ return new class extends Migration
             
             $table->index(['status', 'destination_hub_id']);
         });
+        }
     }
 
     public function down()

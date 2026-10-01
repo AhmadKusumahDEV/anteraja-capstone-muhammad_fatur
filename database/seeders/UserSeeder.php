@@ -10,7 +10,7 @@ class UserSeeder extends Seeder
 {
     public function run()
     {
-        DB::table('users')->insert([
+        DB::table('users')->upsert([
             [
                 'id' => 'USR-001',
                 'nik' => 'ADM-102',
@@ -31,6 +31,6 @@ class UserSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ]
-        ]);
+        ], ['id'], ['nik', 'name', 'role', 'hub_id', 'password_hash', 'updated_at']);
     }
 }

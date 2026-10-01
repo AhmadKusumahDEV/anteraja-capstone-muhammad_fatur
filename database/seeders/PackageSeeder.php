@@ -9,7 +9,7 @@ class PackageSeeder extends Seeder
 {
     public function run()
     {
-        DB::table('packages')->insert([
+        DB::table('packages')->upsert([
             [
                 'tracking_id' => 'TRK-2139410001',
                 'current_hub_id' => 'HUB-JKS-01',
@@ -34,6 +34,6 @@ class PackageSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ]
-        ]);
+        ], ['tracking_id'], ['current_hub_id', 'destination_area', 'service_type', 'status', 'hub_arrival_timestamp', 'sla_deadline', 'is_priority', 'updated_at']);
     }
 }

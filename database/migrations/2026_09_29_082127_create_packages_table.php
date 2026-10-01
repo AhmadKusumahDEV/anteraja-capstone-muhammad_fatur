@@ -8,7 +8,8 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('packages', function (Blueprint $table) {
+        if (!Schema::hasTable('packages')) {
+            Schema::create('packages', function (Blueprint $table) {
             $table->string('tracking_id', 50)->primary();
             $table->string('current_hub_id', 50);
             $table->string('destination_area', 255)->nullable();
@@ -25,6 +26,7 @@ return new class extends Migration
             $table->index(['status', 'current_hub_id']);
             $table->index(['is_priority', 'sla_deadline']);
         });
+        }
     }
 
     public function down()

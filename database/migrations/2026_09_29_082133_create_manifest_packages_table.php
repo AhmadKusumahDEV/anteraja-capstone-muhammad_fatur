@@ -8,7 +8,8 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('manifest_packages', function (Blueprint $table) {
+        if (!Schema::hasTable('manifest_packages')) {
+            Schema::create('manifest_packages', function (Blueprint $table) {
             $table->id();
             $table->string('manifest_code', 50);
             $table->string('tracking_id', 50);
@@ -18,6 +19,7 @@ return new class extends Migration
             
             $table->timestamps();
         });
+        }
     }
 
     public function down()
