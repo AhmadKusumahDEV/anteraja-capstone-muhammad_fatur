@@ -9,7 +9,7 @@ class CourierSeeder extends Seeder
 {
     public function run()
     {
-        DB::table('couriers')->insert([
+        DB::table('couriers')->upsert([
             [
                 'id' => 'SAT-001',
                 'name' => 'Satria Bayu',
@@ -28,6 +28,6 @@ class CourierSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ]
-        ]);
+        ], ['id'], ['name', 'fleet_type', 'status', 'current_hub_id', 'updated_at']);
     }
 }

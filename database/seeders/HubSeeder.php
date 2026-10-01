@@ -9,7 +9,7 @@ class HubSeeder extends Seeder
 {
     public function run()
     {
-        DB::table('hubs')->insert([
+        DB::table('hubs')->upsert([
             [
                 'id' => 'HUB-JKS-01',
                 'name' => 'Jakarta Selatan Transit Hub',
@@ -30,6 +30,6 @@ class HubSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ]
-        ]);
+        ], ['id'], ['name', 'region_name', 'location_tag', 'max_capacity', 'timezone', 'updated_at']);
     }
 }
