@@ -26,13 +26,16 @@ class AuthController extends Controller
             ], 401);
         }
 
+        /** @var \Tymon\JWTAuth\JWTGuard $guard */
+        $guard = auth('api');
+
         // Generate Access Token (60 menit default)
-        $accessToken = JWTAuth::fromUser($user);
+        $accessToken = $guard->login($user);
 
         // Generate Refresh Token (custom claims type = refresh, TTL lebih lama misal 7 hari)
-        $refreshToken = JWTAuth::claims(['type' => 'refresh'])
+        $refreshToken = $guard->claims(['type' => 'refresh'])
             ->setTTL(config('jwt.refresh_ttl', 10080))
-            ->fromUser($user);
+            ->login($user);
 
         return response()->json([
             'success' => true,
@@ -72,7 +75,9 @@ class AuthController extends Controller
     public function refresh(): JsonResponse
     {
         try {
-            $newToken = auth('api')->refresh();
+            /** @var \Tymon\JWTAuth\JWTGuard $guard */
+            $guard = auth('api');
+            $newToken = $guard->refresh();
             return response()->json([
                 'success' => true,
                 'message' => 'Token berhasil diperbarui.',
@@ -96,7 +101,9 @@ class AuthController extends Controller
     public function logout(): JsonResponse
     {
         try {
-            auth('api')->logout();
+            /** @var \Tymon\JWTAuth\JWTGuard $guard */
+            $guard = auth('api');
+            $guard->logout();
             return response()->json([
                 'success' => true,
                 'message' => 'Berhasil logout.',
