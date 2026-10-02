@@ -44,7 +44,7 @@ class InboundController extends Controller
                 'vehicle_type'    => $manifest->vehicle_type,
                 'status'          => $manifest->status instanceof \BackedEnum ? $manifest->status->value : $manifest->status,
                 'total_packages'  => $manifest->packages_count ?? 0,
-                'eta_timestamp'   => $manifest->eta_timestamp?->toIso8601String(),
+                'eta_timestamp'   => $manifest->eta_timestamp?->format('Y-m-d H:i:s'),
                 'created_at'      => $manifest->created_at?->format('Y-m-d H:i:s'),
             ];
         });
@@ -52,46 +52,6 @@ class InboundController extends Controller
         return response()->json([
             'success' => true,
             'data'    => $items,
-        ]);
-    }
-
-    /**
-     * PATCH /api/v1/inbound/manifests/{manifest_code}/arrive
-     * 
-     * Tombol "Tiba Lebih Cepat". Digunakan saat truk sampai di gerbang lebih awal dari ETA.
-     */
-    public function arrive(string $manifest_code): JsonResponse
-    {
-        $user = auth('api')->user();
-        if (!$user || !$user->hub_id) {
-            return response()->json(['success' => false, 'message' => 'Admin tidak memiliki akses ke Hub manapun.'], 403);
-        }
-
-        $manifest = Manifest::where('manifest_code', $manifest_code)
-            ->where('destination_hub_id', $user->hub_id)
-            ->first();
-
-        if (!$manifest) {
-            return response()->json(['success' => false, 'message' => 'Manifest tidak ditemukan atau bukan tujuan hub Anda.'], 404);
-        }
-
-        $currentStatus = $manifest->status instanceof \BackedEnum ? $manifest->status->value : $manifest->status;
-        if ($currentStatus !== 'MENUNGGU_KEDATANGAN') {
-            return response()->json(['success' => false, 'message' => 'Status manifest saat ini bukan MENUNGGU_KEDATANGAN.'], 400);
-        }
-
-        $manifest->status = ManifestStatusEnum::MENUNGGU_KONFIRMASI;
-        $manifest->eta_timestamp = now(); // Set kedatangan realita menjadi saat ini
-        $manifest->save();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Armada dikonfirmasi tiba lebih awal.',
-            'data'    => [
-                'manifest_code' => $manifest->manifest_code,
-                'status'        => 'MENUNGGU_KONFIRMASI',
-                'eta_timestamp' => $manifest->eta_timestamp->toIso8601String(),
-            ],
         ]);
     }
 
@@ -159,58 +119,8 @@ class InboundController extends Controller
                         ]);
                 }
             }
+
             DB::commit();
-
-            // Hitung kapasitas untuk SSE payload
-            $currentLoad = DB::table('packages')->where('current_hub_id', $user->hub_id)->where('status', 'IN_HUB')->count();
-            // Ambil max_capacity asli dari tabel hubs
-            $hub = \App\Models\Hub::find($user->hub_id);
-            $maxCapacity = $hub ? $hub->max_capacity : 200; 
-            
-            $percentage = min(100, round(($currentLoad / $maxCapacity) * 100, 2));
-
-            // Tentukan level kapasitas berdasarkan percentage
-            $statusZone = 'SAFE';
-            $notifType  = \App\Enums\NotificationTypeEnum::INFO;
-            $playSound  = null;
-            $notifTitle = 'Kapasitas Hub Diperbarui';
-
-            if ($percentage >= 90) {
-                $statusZone = 'CRITICAL';
-                $notifType  = \App\Enums\NotificationTypeEnum::CRITICAL;
-                $playSound  = 'siren_alert.mp3';
-                $notifTitle = '🚨 CRITICAL WARNING!';
-            } elseif ($percentage >= 75) {
-                $statusZone = 'HIGH';
-                $notifType  = \App\Enums\NotificationTypeEnum::WARNING;
-                $notifTitle = '⚠️ Hub Hampir Penuh';
-            } elseif ($percentage >= 50) {
-                $statusZone = 'MODERATE';
-            }
-
-            // Selalu kirim untuk meng-update widget UI Frontend
-            $eventData = [
-                'hub_id'              => $user->hub_id,
-                'current_load'        => $currentLoad,
-                'max_capacity'        => $maxCapacity,
-                'capacity_percentage' => $percentage,
-                'status_zone'         => $statusZone,
-                'message'             => "Kapasitas Hub mencapai {$percentage}%.",
-            ];
-
-            // Tambahkan flag play_sound HANYA jika kritis
-            if ($playSound) {
-                $eventData['play_sound'] = $playSound;
-            }
-
-            app(\App\Services\SseSignalService::class)->broadcast(
-                hubId: $user->hub_id,
-                event: \App\Enums\SseEventEnum::CAPACITY_LOAD_ALERT,
-                data: $eventData,
-                title: $notifTitle,
-                message: "Beban hub saat ini: {$percentage}% (Status: {$statusZone})",
-                type: $notifType,
-            );
 
             return response()->json([
                 'success' => true,

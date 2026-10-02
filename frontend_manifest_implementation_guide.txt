@@ -1,0 +1,123 @@
+================================================================================
+API DOCUMENTATION: MANIFEST ENDPOINTS
+================================================================================
+Kumpulan Endpoint API untuk fitur Manifest yang akan diintegrasikan oleh tim Frontend.
+Base URL: http://localhost:8000/api/v1
+
+** SEMUA ENDPOINT DI BAWAH INI WAJIB MENGGUNAKAN HEADER:
+Authorization: Bearer <ACCESS_TOKEN>
+Accept: application/json
+Content-Type: application/json
+--------------------------------------------------------------------------------
+
+────────────────────────────────────────────────────────────────────────────────
+1. GET LIST MANIFEST (Riwayat Tabel Manifest)
+────────────────────────────────────────────────────────────────────────────────
+Deskripsi : Menampilkan daftar manifest beserta paginasi dan filter.
+Method    : GET
+Endpoint  : /manifests
+
+[Query Parameters] (Optional)
+- page      : int    (default: 1) -> Halaman aktif
+- per_page  : int    (default: 10) -> Jumlah data per halaman (max: 25)
+- type      : string (default: INBOUND_FEEDER) -> Filter tipe manifest
+- hub_id    : string -> Filter berdasarkan ID Hub Tujuan
+
+[Response Success (200 OK)]
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "manifest_code": "MNF-20261001-XXXXX",
+        "type": "INBOUND_FEEDER",
+        "origin_hub_code": "HUB-JKS-01",
+        "origin_hub_name": "Jakarta Selatan Transit Hub",
+        "destination_hub_code": "HUB-BDO-01",
+        "destination_hub_name": "Bandung Pusat Hub",
+        "vehicle_type": "TRUCK_WINGBOX",
+        "status": "DRAFT",
+        "total_packages": 50,
+        "created_at": "2026-10-01 10:00:00"
+      }
+    ],
+    "meta": {
+      "current_page": 1,
+      "per_page": 10,
+      "total": 150,
+      "last_page": 15
+    }
+  }
+}
+
+────────────────────────────────────────────────────────────────────────────────
+2. GET MANIFEST DETAIL (Detail & List Paket dalam Manifest)
+────────────────────────────────────────────────────────────────────────────────
+Deskripsi : Mengambil detail satu manifest beserta semua paket (resi) di dalamnya.
+Method    : GET
+Endpoint  : /manifests/{manifestCode}
+
+[URL Parameters]
+- manifestCode : string -> Kode manifest yang didapat dari tabel di atas.
+
+[Response Success (200 OK)]
+{
+  "success": true,
+  "data": {
+    "manifest_code": "MNF-20261001-XXXXX",
+    "type": "INBOUND_FEEDER",
+    "origin_hub_code": "HUB-JKS-01",
+    "origin_hub_name": "Jakarta Selatan Transit Hub",
+    "destination_hub_code": "HUB-BDO-01",
+    "destination_hub_name": "Bandung Pusat Hub",
+    "vehicle_type": "TRUCK_WINGBOX",
+    "status": "DRAFT",
+    "eta_timestamp": "2026-10-01 12:00:00",
+    "total_packages": 50,
+    "packages": [
+      {
+        "tracking_id": "PKG-XXXXX-1",
+        "service_type": "REGULAR",
+        "status": "AT_SORTING_CENTER",
+        "destination_area": "Bandung"
+      }
+    ]
+  }
+}
+
+────────────────────────────────────────────────────────────────────────────────
+3. POST GENERATE MANIFEST (Buat Simulasi Manifest Baru)
+────────────────────────────────────────────────────────────────────────────────
+Deskripsi : Membuat manifest baru sekaligus men-generate paket-paket dummy di dalamnya.
+Method    : POST
+Endpoint  : /manifests/generate
+
+[Request Body (JSON)]
+{
+  "destination_hub_id": "HUB-BDO-01",  // (Wajib) String: ID Hub Tujuan
+  "total_packages": 50,                // (Wajib) Integer: Jumlah paket (min: 1, max: 150)
+  "eta_offset_minutes": 120,           // (Wajib) Integer: Perkiraan waktu tempuh dalam menit
+  "manifest_code": "MNF-CUSTOM-123"    // (Opsional) String: Jika dikosongkan, akan otomatis dibuatkan sistem
+}
+
+[Response Success (200 OK)]
+{
+  "success": true,
+  "message": "Manifest berhasil dibuat dan diisi paket secara dummy.",
+  "data": {
+    "manifest_code": "MNF-CUSTOM-123",
+    "status": "DRAFT",
+    ...
+  }
+}
+
+[Response Error Validasi (422 Unprocessable Entity)]
+{
+  "message": "Hub tujuan wajib dipilih.",
+  "errors": {
+    "destination_hub_id": [
+      "Hub tujuan wajib dipilih."
+    ]
+  }
+}
+================================================================================

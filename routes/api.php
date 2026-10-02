@@ -6,6 +6,7 @@ use App\Http\Controllers\GenerateManifestController;
 use App\Http\Controllers\Api\V1\HubController;
 use App\Http\Controllers\Api\V1\ManifestController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\InboundController;
 
 /*
 |--------------------------------------------------------------------------
@@ -45,5 +46,9 @@ Route::prefix('v1')->group(function () {
 
         // [Endpoint 4] GET /api/v1/manifests/{manifestCode}
         Route::get('/manifests/{manifestCode}', [ManifestController::class, 'show']);
+
+        // [Endpoint 5] Inbound Sorting (F-06)
+        Route::get('/inbound/manifests', [InboundController::class, 'index']);
+        Route::post('/inbound/manifests/{manifest_code}/acknowledge', [InboundController::class, 'acknowledge']);
     });
 });
