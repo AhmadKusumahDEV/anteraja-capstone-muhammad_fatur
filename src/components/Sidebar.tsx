@@ -1,6 +1,5 @@
 import { NavLink } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
-import { useHubStore } from '../store/useHubStore';
 import { useAdminContext } from '../context/AdminContext';
 import { useAdminProfile } from '../hooks/useAdminProfile';
 import logoImg from '../assets/logo.png';
@@ -46,10 +45,15 @@ const NAV_ITEMS = [
   },
 ] as const;
 
-export default function Sidebar() {
+interface SidebarProps {
+  isOpen?: boolean;
+  setIsOpen?: (isOpen: boolean) => void;
+}
+
+export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   // Pindahkan pengaturan mute dari HubStore ke AdminContext
-  const { isAlarmMuted, toggleAlarmMute, adminProfile } = useAdminContext();
-  
+  const { isAlarmMuted, toggleAlarmMute, adminProfile, logout } = useAdminContext();
+
   // Custom hook untuk melakukan fetch profile picture secara asynchronous
   const { isLoading, isError } = useAdminProfile();
 
@@ -68,40 +72,53 @@ export default function Sidebar() {
 
   return (
     <aside
-      className="
+      className={`
         fixed inset-y-0 left-0 z-50
-        flex w-[var(--spacing-sidebar)] flex-col
-        bg-sidebar-bg
-        text-sidebar-text
-      "
+        flex flex-col
+        bg-sidebar-bg text-sidebar-text
+        transition-all duration-300 ease-in-out
+        w-[260px] md:w-[88px] lg:w-[260px]
+        ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      `}
       aria-label="Sidebar navigasi"
     >
       {/* ── Brand Header ── */}
-      <header className="flex items-center gap-4 px-5 py-6">
+      <header className="flex items-center gap-4 px-5 md:px-2 lg:px-5 py-6 justify-center lg:justify-start">
         <img
           src={logoImg}
           alt="Anteraja Hub Logo"
-          width={81}
-          height={81}
-          className="rounded-xl flex-shrink-0"
+          className="h-8 md:h-8 lg:h-10 w-auto max-w-[70px] lg:max-w-full object-contain flex-shrink-0 transition-all duration-300"
         />
-        <div className="flex flex-col gap-1.5">
+        <div className="flex-col gap-1.5 md:hidden lg:flex">
           <span className="inline-block w-fit rounded-md bg-anteraja-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-white">
             Hub Admin
           </span>
         </div>
+        
+        {/* Tombol tutup sidebar di mobile */}
+        {isOpen && setIsOpen && (
+          <button 
+            type="button" 
+            onClick={() => setIsOpen(false)}
+            className="md:hidden absolute top-4 right-4 p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
+          </button>
+        )}
       </header>
 
       {/* ── Hub Session Card ── */}
-      <div className="mx-4 mb-4 rounded-xl bg-sidebar-hover px-4 py-3">
+      <div className="mx-4 mb-4 rounded-xl bg-sidebar-hover px-4 py-3 md:px-2 md:mx-3 md:py-2 md:flex md:justify-center lg:px-4 lg:mx-4 lg:justify-start">
         <div className="flex items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-anteraja-primary text-sm font-bold text-white" aria-hidden="true">
-            J4
+          <span className="flex h-9 w-9 md:h-10 md:w-10 lg:h-9 lg:w-9 items-center justify-center rounded-lg bg-anteraja-primary text-sm font-bold text-white flex-shrink-0 transition-all" aria-hidden="true">
+            {adminProfile?.hub_id ? adminProfile.hub_id.split('-').pop() : '00'}
           </span>
-          <div className="flex flex-col">
-            <span className="text-sm font-semibold text-white">Hub JKT-04</span>
+          <div className="flex-col md:hidden lg:flex">
+            <span className="text-sm font-semibold text-white">{adminProfile?.hub_id || 'Loading...'}</span>
             <span className="flex items-center gap-1 text-xs text-emerald-400">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" aria-hidden="true" />
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" aria-hidden="true" />
               Active Session • Live
             </span>
           </div>
@@ -110,23 +127,30 @@ export default function Sidebar() {
 
       {/* ── Navigation Links ── */}
       <nav className="flex-1 px-3" aria-label="Menu utama">
-        <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-sidebar-text/50">
-          Main Navigation
+        <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-sidebar-text/50 md:text-center lg:text-left">
+          <span className="md:hidden lg:inline">Main Navigation</span>
+          <span className="hidden md:inline lg:hidden">Menu</span>
         </p>
-        <ul className="flex flex-col gap-1" role="list">
+        <ul className="flex flex-col gap-2 md:gap-3 lg:gap-1" role="list">
           {NAV_ITEMS.map((item) => (
             <li key={item.path}>
               <NavLink
                 to={item.path}
                 className={({ isActive }) =>
-                  `group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ${isActive
+                  `group flex items-center md:justify-center lg:justify-start gap-3 rounded-xl px-3 py-2.5 md:py-3 lg:py-2.5 text-sm font-medium transition-all duration-200 relative ${isActive
                     ? 'bg-anteraja-primary text-white shadow-lg shadow-anteraja-primary/30'
                     : 'text-sidebar-text hover:bg-sidebar-hover hover:text-white'
                   }`
                 }
+                title={item.label}
               >
-                {item.icon}
-                <span>{item.label}</span>
+                <div className="flex-shrink-0">{item.icon}</div>
+                <span className="md:hidden lg:block whitespace-nowrap">{item.label}</span>
+                
+                {/* Tooltip for tablet view */}
+                <div className="hidden md:block lg:hidden absolute left-14 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50">
+                  {item.label}
+                </div>
               </NavLink>
             </li>
           ))}
@@ -139,36 +163,35 @@ export default function Sidebar() {
         <button
           type="button"
           onClick={() => setIsProfileOpen(!isProfileOpen)}
-          className="flex w-full items-center justify-between px-4 py-4 transition-colors hover:bg-sidebar-hover focus:outline-none"
+          className="flex w-full items-center justify-between md:justify-center lg:justify-between px-4 py-4 md:px-2 lg:px-4 transition-colors hover:bg-sidebar-hover focus:outline-none"
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 md:gap-0 lg:gap-3">
             {isLoading ? (
               // Loading Spinner State
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-sidebar-hover">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-sidebar-hover flex-shrink-0">
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-anteraja-primary border-t-transparent"></div>
               </div>
-            ) : isError || !adminProfile ? (
+            ) : isError || !adminProfile || !adminProfile.pictureUrl ? (
               // Error / Fallback State
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-gray-500 to-gray-700 text-xs font-bold text-white" aria-hidden="true">
-                AB
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-gray-500 to-gray-700 text-xs font-bold text-white flex-shrink-0" aria-hidden="true">
+                {adminProfile?.name ? adminProfile.name.substring(0, 2).toUpperCase() : 'AB'}
               </span>
             ) : (
               // Success Data State
-              <img 
-                src={adminProfile.pictureUrl} 
-                alt="Profile" 
-                className="h-9 w-9 rounded-full object-cover shadow-sm"
-                crossOrigin="anonymous"
+              <img
+                src={adminProfile.pictureUrl}
+                alt="Profile"
+                className="h-9 w-9 rounded-full object-cover shadow-sm flex-shrink-0"
               />
             )}
-            
-            <div className="flex flex-col overflow-hidden text-left">
+
+            <div className="flex-col overflow-hidden text-left md:hidden lg:flex">
               <span className="truncate text-sm font-semibold text-white">
-                {adminProfile ? adminProfile.name : 'Admin Budi'}
+                {adminProfile?.name || 'Admin Budi'}
               </span>
               <span className="flex items-center gap-1 truncate text-xs text-sidebar-text">
-                <span className={`h-1.5 w-1.5 rounded-full ${isLoading ? 'bg-yellow-400 animate-pulse' : isError ? 'bg-red-500' : 'bg-emerald-400'}`} aria-hidden="true" />
-                ID: ADM-102
+                <span className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${isLoading ? 'bg-yellow-400 animate-pulse' : isError ? 'bg-red-500' : 'bg-emerald-400'}`} aria-hidden="true" />
+                ID: {adminProfile?.hub_id || 'ADM-102'}
               </span>
             </div>
           </div>
@@ -176,7 +199,7 @@ export default function Sidebar() {
 
         {/* Dropdown Menu */}
         {isProfileOpen && (
-          <div className="absolute bottom-full left-4 mb-2 w-64 rounded-xl bg-white shadow-xl ring-1 ring-black/5 z-50 overflow-hidden animate-in fade-in slide-in-from-bottom-2">
+          <div className="absolute bottom-full left-4 md:left-[90px] lg:left-4 mb-2 w-64 rounded-xl bg-white shadow-xl ring-1 ring-black/5 z-50 overflow-hidden animate-in fade-in slide-in-from-bottom-2 md:slide-in-from-left-2 lg:slide-in-from-bottom-2">
             <div className="p-2">
               <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-gray-500">
                 Pengaturan Sistem
@@ -208,6 +231,7 @@ export default function Sidebar() {
 
               <button
                 type="button"
+                onClick={logout}
                 className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

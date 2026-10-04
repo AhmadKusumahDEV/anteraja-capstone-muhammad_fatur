@@ -6,20 +6,34 @@ import Outbound from './pages/Outbound';
 import SlaQueue from './pages/SlaQueue';
 import ShipmentDetail from './pages/ShipmentDetail';
 import NotFound from './pages/NotFound';
+import Login from './pages/Login';
+import PrivateRoute from './components/PrivateRoute';
+import { useAuthStore } from './store/useAuthStore';
+import { useEffect } from 'react';
 
 export default function App() {
+  const { fetchMe } = useAuthStore();
+
+  useEffect(() => {
+    // Attempt to fetch user profile on initial load if token exists
+    fetchMe();
+  }, [fetchMe]);
+
   return (
     <Routes>
+      {/* Halaman Auth (Tanpa Sidebar/Navbar) */}
+      <Route path="/login" element={<Login />} />
+
       {/* Semua halaman (rute) di-nest ke dalam MainLayout yang menyediakan Persistent UI (Sidebar, Navbar) */}
-      <Route element={<MainLayout />}>
+      <Route element={<PrivateRoute><MainLayout /></PrivateRoute>}>
         {/* Redirect root (/) ke /sla-queue sebagai HomePage default */}
         <Route path="/" element={<Navigate to="/sla-queue" replace />} />
-        
+
         <Route path="/sla-queue" element={<SlaQueue />} />
         <Route path="/inbound" element={<Inbound />} />
         <Route path="/outbound" element={<Outbound />} />
         <Route path="/manifest-generator" element={<ManifestGenerator />} />
-        
+
         {/* Dynamic Route dengan URL Parameter untuk Detail Resi / Manifest */}
         <Route path="/shipments/:id" element={<ShipmentDetail />} />
       </Route>

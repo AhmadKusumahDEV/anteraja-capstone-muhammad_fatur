@@ -1,15 +1,15 @@
 // ─── Unified types for the connected data flow (Hub Store) ───────────────────
 
-export type ServiceType = 'SAME_DAY' | 'REGULAR';
+export type ServiceType = 'SAME_DAY' | 'NEXT_DAY' | 'REGULAR';
 export type PackageStatus = 'IN_TRANSIT' | 'IN_HUB' | 'OUT_FOR_DELIVERY' | 'DELIVERED';
-export type InboundManifestStatus = 'MENUNGGU_KONFIRMASI' | 'SUDAH_DITERIMA';
+export type InboundManifestStatus = 'MENUNGGU_KEDATANGAN' | 'MENUNGGU_KONFIRMASI' | 'SUDAH_DITERIMA';
 export type SeverityZone = 'CRITICAL' | 'WARNING' | 'NORMAL';
 export type FleetType = 'MOTORCYCLE' | 'VAN';
 export type CourierStatus = 'STANDBY' | 'ON_DUTY' | 'OFFLINE';
 export type DispatchStatus = 'SIAP_BERANGKAT' | 'DALAM_PENGANTARAN' | 'SELESAI';
 
 export interface Hub {
-  id: number;
+  id: string | number;
   hub_code: string;
   hub_name: string;
   hub_color: string;
@@ -30,11 +30,10 @@ export interface HubPackage {
   manifest_code: string;
   service_type: ServiceType;
   destination_area: string;
+  weight?: number;
   status: PackageStatus;
   hub_arrival_timestamp: string;
   sla_deadline: string;
-  remaining_minutes: number;
-  severity_zone: SeverityZone;
   is_priority: boolean;
 }
 
@@ -51,7 +50,7 @@ export interface InboundManifest {
   packages: HubPackage[];
   status: InboundManifestStatus;
   eta: string;
-  eta_timestamp: number;
+  eta_timestamp: string | number; // ISO string from backend, or ms epoch from local store
   created_at: string;
 }
 
@@ -81,4 +80,9 @@ export interface ManifestLogEntry {
 export interface HubCapacity {
   current: number;
   max: number;
+  hub_name?: string;
+  usage_percent?: number;
+  // MODERATE | WARNING | CRITICAL (from backend) — mirrors our frontend thresholds
+  capacity_status?: 'NORMAL' | 'MODERATE' | 'WARNING' | 'CRITICAL';
+  in_transit_load?: number;
 }
