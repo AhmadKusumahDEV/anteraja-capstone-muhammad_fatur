@@ -72,6 +72,12 @@
                     required>
             </div>
 
+            <!-- Token JWT -->
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1 uppercase">JWT Token</label>
+                <input type="text" id="jwtToken" placeholder="Paste token JWT admin disini..." class="w-full p-3 border-2 border-gray-200 rounded-xl bg-gray-50 font-medium outline-none focus:border-red-500 text-xs" required>
+            </div>
+
             <div class="pt-6">
                 <button type="submit" id="submitBtn"
                     class="btn-press w-full bg-red-600 text-white font-black text-lg py-4 rounded-2xl shadow-[0_8px_0_rgb(185,28,28)] active:shadow-[0_0px_0_rgb(185,28,28)] active:translate-y-2 uppercase tracking-wide">
@@ -97,6 +103,7 @@
             const dest = document.getElementById('destinationHub').value;
             const eta = document.getElementById('etaMinutes').value;
             const packages = document.getElementById('totalPackages').value;
+            const token = document.getElementById('jwtToken').value;
 
             btn.disabled = true;
             btn.innerHTML = 'MENGIRIM...';
@@ -111,14 +118,12 @@
 
             try {
                 // Tembak API (menyesuaikan config nginx reverse proxy yang membuang prefix '/anter-aja-backend/')
-                // Tapi ini dipanggil dari browser client-side, jadi target root domain-nya.
-                // Jika akses dari https://madgo.my.id/anter-aja-backend/trigger.html
-                // Maka nge-hit api di https://madgo.my.id/anter-aja-backend/api/v1/manifests/generate
                 const res = await fetch('/anter-aja-backend/api/v1/manifests/generate', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Accept': 'application/json'
+                        'Accept': 'application/json',
+                        'Authorization': 'Bearer ' + token
                     },
                     body: JSON.stringify(payload)
                 });
