@@ -14,4 +14,12 @@ class Hub extends Model
     protected $keyType = 'string';
 
     protected $guarded = [];
+
+    /**
+     * Paket yang sedang berada di Hub ini.
+     */
+    public function packages()
+    {
+        return $this->hasMany(Package::class, 'current_hub_id', 'id');
+    }
 }
