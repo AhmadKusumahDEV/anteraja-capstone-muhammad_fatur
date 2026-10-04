@@ -23,6 +23,7 @@ interface InboundState {
   openConfirmModal: (manifest: InboundManifest) => void;
   closeConfirmModal: () => void;
   setManifests: (manifests: InboundManifest[]) => void;
+  fetchManifests: () => Promise<void>;
 }
 
 export const useInboundStore = create<InboundState>((set, get) => ({
@@ -70,4 +71,23 @@ export const useInboundStore = create<InboundState>((set, get) => ({
         m.manifest_code === code ? { ...m, eta_timestamp: eta } : m
       ),
     })),
+    
+  fetchManifests: async () => {
+    try {
+      // Lazy load api to avoid circular dependencies if any
+      const api = (await import('../services/api')).default;
+      const { data } = await api.get('/inbound/manifests');
+      if (data.success) {
+        const normalised = (data.data as any[]).map((m: any) => ({
+          ...m,
+          eta_timestamp: typeof m.eta_timestamp === 'string'
+            ? new Date(m.eta_timestamp).getTime()
+            : m.eta_timestamp,
+        }));
+        set({ manifests: normalised });
+      }
+    } catch (err) {
+      console.error('[Inbound] Failed to fetch manifests:', err);
+    }
+  },
 }));

@@ -15,29 +15,9 @@ export default function Inbound() {
 
   // ── Fetch manifests (always runs on mount) ────────────────────────────────
   useEffect(() => {
-    let isMounted = true;
-
-    const fetchManifests = async () => {
-      try {
-        const { data } = await api.get('/inbound/manifests');
-        if (!isMounted) return;
-        if (data.success) {
-          const normalised = (data.data as any[]).map((m: any) => ({
-            ...m,
-            eta_timestamp: typeof m.eta_timestamp === 'string'
-              ? new Date(m.eta_timestamp).getTime()
-              : m.eta_timestamp,
-          }));
-          setManifests(normalised);
-        }
-      } catch (err) {
-        console.error('[Inbound] Failed to fetch manifests:', err);
-      }
-    };
-
-    fetchManifests();
-    return () => { isMounted = false; };
-  }, [setManifests]);
+    // Memanggil action global di store saat pertama mount
+    useInboundStore.getState().fetchManifests();
+  }, []);
 
   // ── Fetch capacity (runs only when hub_id is known) ────────────────────────
   useEffect(() => {

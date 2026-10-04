@@ -41,21 +41,26 @@ export default function CapacityAlarm() {
 
   useEffect(() => {
     // Tangkap data dari SSE Backend
-    if (capacityData && capacityData.in_transit_load !== undefined) {
+    // Sekarang Backend memberikan status_zone: "CRITICAL" jika bahaya
+    if (capacityData && capacityData.status_zone === 'CRITICAL') {
       setAlarmDetails({
         current_load: capacityData.current_load,
-        in_transit_load: capacityData.in_transit_load,
+        in_transit_load: capacityData.in_transit_load || 0, // Fallback jika dihapus
         max_capacity: capacityData.max_capacity,
       });
 
       if (!isSnoozed && !isDismissed) {
         setShowModal(true);
       }
+    } else {
+      // Jika sudah turun menjadi HIGH/MODERATE/SAFE, otomatis tutup modal
+      setShowModal(false);
     }
   }, [capacityData, isSnoozed, isDismissed]);
 
   useEffect(() => {
-    if (showModal && !isAlarmMuted) {
+    if (showModal && !isAlarmMuted && capacityData?.play_sound) {
+      // Gunakan cowwSoundUrl bawaan kita sebagai default, atau audio dinamis
       const audio = new Audio(cowwSoundUrl);
       audio.loop = true;
       audio.play().catch((e) => console.error("Audio block oleh browser", e));

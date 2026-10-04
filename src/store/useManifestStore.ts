@@ -4,14 +4,24 @@ import { useHubStore } from './useHubStore';
 
 const ITEMS_PER_PAGE = 10;
 
+const generateDraftCode = () => {
+  const date = new Date();
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  const rand = Math.floor(1000 + Math.random() * 9000);
+  return `MNF-INB-${yyyy}${mm}${dd}-${rand}`;
+};
+
 interface ManifestState {
   hubs: Hub[];
   manifests: ManifestLogEntry[];
 
   selectedHubId: string | number | null;
+  originHubId: string | null;
   packageCount: number;
   etaOffsetMins: number;
-  draftManifestCode: string;
+  customManifestCode: string;
 
   searchQuery: string;
   hubFilter: string;
@@ -28,6 +38,8 @@ interface ManifestState {
   generateDraftCode: () => string;
 
   setSelectedHub: (id: string | number | null) => void;
+  setOriginHub: (id: string | null) => void;
+  setCustomManifestCode: (code: string) => void;
   setPackageCount: (count: number) => void;
   setEtaOffsetMins: (mins: number) => void;
   resetForm: () => void;
@@ -42,15 +54,17 @@ interface ManifestState {
 
   // Sync action — called by useHubStore
   addLog: (log: ManifestLogEntry) => void;
+  fetchManifests: () => Promise<void>;
 }
 
 export const useManifestStore = create<ManifestState>((set, get) => ({
   hubs: useHubStore.getState().hubs,
   manifests: useHubStore.getState().manifestLogs,
   selectedHubId: 1, // Fixed to HUB-JKS-01 by default
+  originHubId: '', // Default kosong (Acak)
   packageCount: 25,
   etaOffsetMins: 15, // Default ETA: +15 minutes
-  draftManifestCode: `MNF-2409-${Math.floor(1000 + Math.random() * 9000)}`,
+  customManifestCode: generateDraftCode(),
   searchQuery: '',
   hubFilter: 'ALL',
   currentPage: 1,
@@ -95,12 +109,14 @@ export const useManifestStore = create<ManifestState>((set, get) => ({
 
   getTotalPages: () => Math.max(1, Math.ceil(get().getFilteredManifests().length / ITEMS_PER_PAGE)),
 
-  generateDraftCode: () => `MNF-2409-${Math.floor(1000 + Math.random() * 9000)}`,
+  generateDraftCode,
 
-  setSelectedHub: (id) => set({ selectedHubId: id, draftManifestCode: get().generateDraftCode() }),
+  setSelectedHub: (id) => set({ selectedHubId: id }),
+  setOriginHub: (id) => set({ originHubId: id }),
+  setCustomManifestCode: (code) => set({ customManifestCode: code }),
   setPackageCount: (count) => set({ packageCount: count }),
   setEtaOffsetMins: (mins) => set({ etaOffsetMins: mins }),
-  resetForm: () => set({ selectedHubId: 1, packageCount: 25, etaOffsetMins: 15, draftManifestCode: get().generateDraftCode() }),
+  resetForm: () => set({ selectedHubId: 1, originHubId: '', packageCount: 25, etaOffsetMins: 15, customManifestCode: generateDraftCode() }),
 
   // Delegates to global hub store — which then syncs back via addLog
   submitManifest: () => {
@@ -110,7 +126,7 @@ export const useManifestStore = create<ManifestState>((set, get) => ({
       return;
     }
     useHubStore.getState().submitManifest(packageCount, etaOffsetMins);
-    set({ selectedHubId: 1, packageCount: 25, etaOffsetMins: 15, draftManifestCode: get().generateDraftCode(), currentPage: 1 });
+    set({ selectedHubId: 1, originHubId: '', packageCount: 25, etaOffsetMins: 15, customManifestCode: generateDraftCode(), currentPage: 1 });
   },
 
   setSearchQuery: (query) => set({ searchQuery: query, currentPage: 1 }),
@@ -123,4 +139,30 @@ export const useManifestStore = create<ManifestState>((set, get) => ({
   // ── Sync action (called by useHubStore) ──
   addLog: (log) =>
     set((state) => ({ manifests: [log, ...state.manifests], currentPage: 1 })),
+
+  fetchManifests: async () => {
+    try {
+      const api = (await import('../services/api')).default;
+      const { data } = await api.get('/manifests');
+      if (data.success && data.data?.items) {
+        const logs: ManifestLogEntry[] = data.data.items.map((item: any) => ({
+          manifest_code: item.manifest_code,
+          destination_hub_code: item.destination_hub_code,
+          destination_hub_name: item.destination_hub_name,
+          total_packages: item.total_packages,
+          vehicle_type: item.vehicle_type,
+          created_at: item.created_at,
+          hub_color: 'bg-blue-500',
+          packages: [],
+        }));
+        set({ manifests: logs });
+        // Sinkronisasi juga ke HubStore
+        import('./useHubStore').then((m) => {
+          m.useHubStore.getState().setManifestLogs(logs);
+        });
+      }
+    } catch (err) {
+      console.error('[ManifestGenerator] Failed to fetch manifests:', err);
+    }
+  },
 }));

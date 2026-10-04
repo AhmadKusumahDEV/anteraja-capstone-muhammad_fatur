@@ -94,6 +94,19 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         switch (payload.event) {
           case 'INBOUND_ARRIVAL_SIGNAL':
             set({ latestInbound: payload.data });
+            
+            // "Invalidate Query" style: Refresh InboundTable automatically!
+            import('./useInboundStore').then((m) => {
+              if (m.useInboundStore.getState().fetchManifests) {
+                m.useInboundStore.getState().fetchManifests();
+              }
+            });
+            import('./useManifestStore').then((m) => {
+              if (m.useManifestStore.getState().fetchManifests) {
+                m.useManifestStore.getState().fetchManifests();
+              }
+            });
+
             get().addLocalNotification({
               title: 'Manifest Baru Masuk',
               message: payload.data.message,
@@ -103,10 +116,23 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
           case 'CAPACITY_LOAD_ALERT':
             set({ capacityData: payload.data });
+            
+            // Sync secara real-time ke HubStore agar HubCapacityCard langsung bereaksi (Zero Polling)
+            import('./useHubStore').then((m) => {
+              const currentCap = m.useHubStore.getState().hubCapacity;
+              m.useHubStore.getState().setHubCapacity({
+                ...currentCap,
+                current: payload.data.current_load,
+                max: payload.data.max_capacity,
+                usage_percent: payload.data.capacity_percentage,
+                capacity_status: payload.data.status_zone,
+              });
+            });
+
             get().addLocalNotification({
-              title: 'CRITICAL WARNING: Overcapacity!',
-              message: payload.data.message || `Kapasitas akan melebihi batas! Beban: ${payload.data.current_load}, OTW: ${payload.data.in_transit_load}, Maks: ${payload.data.max_capacity}`,
-              type: 'CRITICAL',
+              title: payload.title || 'Info Kapasitas Hub',
+              message: payload.message || payload.data.message || 'Kapasitas hub diperbarui.',
+              type: payload.type || 'INFO',
             });
             break;
 
