@@ -1,26 +1,30 @@
 import { useEffect, useRef, useState } from 'react';
 import cowwSoundUrl from '../assets/coww.mpeg';
-import { useHubStore } from '../store/useHubStore';
 import { useAdminContext } from '../context/AdminContext';
+import { useNotificationStore } from '../store/useNotificationStore';
 
 export default function CapacityAlarm() {
-  const { hubCapacity, inboundManifests } = useHubStore();
-  const { isAlarmMuted } = useAdminContext();
+  const { isAlarmMuted, toggleAlarmMute } = useAdminContext();
+  const capacityData = useNotificationStore((state) => state.capacityData);
 
   const [showModal, setShowModal] = useState(false);
   const [isSnoozed, setIsSnoozed] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
 
+  const [alarmDetails, setAlarmDetails] = useState<{
+    current_load: number;
+    in_transit_load: number;
+    max_capacity: number;
+  } | null>(null);
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const triggerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const snoozeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleSnooze = () => {
     setShowModal(false);
     setIsSnoozed(true);
 
-    if (triggerTimeoutRef.current) clearTimeout(triggerTimeoutRef.current);
-    triggerTimeoutRef.current = null;
+    if (snoozeTimeoutRef.current) clearTimeout(snoozeTimeoutRef.current);
 
     snoozeTimeoutRef.current = setTimeout(() => {
       setIsSnoozed(false);
@@ -31,40 +35,24 @@ export default function CapacityAlarm() {
     setShowModal(false);
     setIsDismissed(true);
 
-    if (triggerTimeoutRef.current) clearTimeout(triggerTimeoutRef.current);
     if (snoozeTimeoutRef.current) clearTimeout(snoozeTimeoutRef.current);
-    triggerTimeoutRef.current = null;
     snoozeTimeoutRef.current = null;
   };
 
-  const inTransitCount = inboundManifests
-    .filter((m) => m.status === 'MENUNGGU_KONFIRMASI')
-    .reduce((s, m) => s + m.total_packages, 0);
-
-  const totalIncomingLoad = hubCapacity.current + inTransitCount;
-  const isOverload = totalIncomingLoad > hubCapacity.max;
-
   useEffect(() => {
-    if (isOverload && !isSnoozed && !showModal && !isDismissed) {
-      if (!triggerTimeoutRef.current) {
-        triggerTimeoutRef.current = setTimeout(() => {
-          setShowModal(true);
-        }, 10000);
+    // Tangkap data dari SSE Backend
+    if (capacityData && capacityData.in_transit_load !== undefined) {
+      setAlarmDetails({
+        current_load: capacityData.current_load,
+        in_transit_load: capacityData.in_transit_load,
+        max_capacity: capacityData.max_capacity,
+      });
+
+      if (!isSnoozed && !isDismissed) {
+        setShowModal(true);
       }
-    } else if (!isOverload) {
-      if (triggerTimeoutRef.current) clearTimeout(triggerTimeoutRef.current);
-      if (snoozeTimeoutRef.current) clearTimeout(snoozeTimeoutRef.current);
-      triggerTimeoutRef.current = null;
-      snoozeTimeoutRef.current = null;
-
-      setShowModal(false);
-      setIsSnoozed(false);
     }
-
-    return () => {
-      if (triggerTimeoutRef.current) clearTimeout(triggerTimeoutRef.current);
-    };
-  }, [isOverload, showModal, isSnoozed, isDismissed]);
+  }, [capacityData, isSnoozed, isDismissed]);
 
   useEffect(() => {
     if (showModal && !isAlarmMuted) {
@@ -89,21 +77,23 @@ export default function CapacityAlarm() {
     };
   }, []);
 
-  if (!showModal) return null;
+  if (!showModal || !alarmDetails) return null;
+
+  const totalIncomingLoad = alarmDetails.current_load + alarmDetails.in_transit_load;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-red-900/40 backdrop-blur-md"></div>
 
       <div className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl ring-4 ring-red-500/50 animate-in zoom-in-95 duration-200">
         <div className="bg-red-600 px-6 py-5 flex flex-col items-center justify-center relative">
           <div className="absolute top-0 right-0 p-4">
             <button
-              onClick={toggleMute}
+              onClick={toggleAlarmMute}
               className="text-white/80 hover:text-white"
-              title={isMuted ? "Bunyikan Alarm" : "Matikan Suara"}
+              title={isAlarmMuted ? "Bunyikan Alarm" : "Matikan Suara"}
             >
-              {isMuted ? (
+              {isAlarmMuted ? (
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM12.293 7.293a1 1 0 011.414 0L15 8.586l1.293-1.293a1 1 0 111.414 1.414L16.414 10l1.293 1.293a1 1 0 01-1.414 1.414L15 11.414l-1.293 1.293a1 1 0 01-1.414-1.414L13.586 10l-1.293-1.293a1 1 0 010-1.414z" clipRule="evenodd" />
                 </svg>
@@ -130,7 +120,7 @@ export default function CapacityAlarm() {
           <div className="grid grid-cols-2 gap-4 mb-8">
             <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-center">
               <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Maksimal Hub</p>
-              <p className="text-2xl font-black text-gray-900">{hubCapacity.max}</p>
+              <p className="text-2xl font-black text-gray-900">{alarmDetails.max_capacity}</p>
             </div>
             <div className="bg-red-50 border border-red-100 rounded-xl p-4 text-center shadow-inner">
               <p className="text-xs font-bold text-red-500 uppercase tracking-widest mb-1">Total Proyeksi</p>
@@ -141,15 +131,15 @@ export default function CapacityAlarm() {
           <div className="space-y-3 mb-8">
             <div className="flex justify-between text-sm">
               <span className="text-gray-500">Telah berada di Hub:</span>
-              <span className="font-bold text-gray-900">{hubCapacity.current} Paket</span>
+              <span className="font-bold text-gray-900">{alarmDetails.current_load} Paket</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-gray-500">Akan Tiba (In-Transit):</span>
-              <span className="font-bold text-orange-600">+{inTransitCount} Paket</span>
+              <span className="font-bold text-orange-600">+{alarmDetails.in_transit_load} Paket</span>
             </div>
             <div className="border-t border-dashed border-gray-200 pt-3 flex justify-between text-sm">
               <span className="font-bold text-red-600">Kelebihan Beban:</span>
-              <span className="font-black text-red-600">+{totalIncomingLoad - hubCapacity.max} Paket</span>
+              <span className="font-black text-red-600">+{totalIncomingLoad - alarmDetails.max_capacity} Paket</span>
             </div>
           </div>
 
