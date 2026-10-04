@@ -1,8 +1,13 @@
-import { useSlaQueueStore } from '../../store/useSlaQueueStore';
 import HubCapacityCard from '../../components/HubCapacityCard';
+import { useHubStore } from '../../store/useHubStore';
+import { useSlaQueueStore } from '../../store/useSlaQueueStore';
 
 export default function MetricCards() {
-  const { metrics } = useSlaQueueStore();
+  const { hubCapacity } = useHubStore();
+  const { packages } = useSlaQueueStore(); // Use filtered IN_HUB packages from the new store
+  
+  const inHubCount = packages.length;
+  const inTransitCount = hubCapacity.in_transit_load || 0;
 
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -13,7 +18,7 @@ export default function MetricCards() {
             In Hub Packages
           </p>
           <p className="mt-2 text-4xl font-bold text-gray-900 tabular-nums">
-            {metrics.in_hub_count}
+            {inHubCount}
           </p>
           <p className="mt-1 text-xs text-gray-400">Packages</p>
         </div>
@@ -41,7 +46,7 @@ export default function MetricCards() {
             Incoming / In Transit
           </p>
           <p className="mt-2 text-4xl font-bold text-gray-900 tabular-nums">
-            {metrics.in_transit_count}
+            {inTransitCount}
           </p>
           <p className="mt-1 text-xs text-gray-400">Packages</p>
         </div>

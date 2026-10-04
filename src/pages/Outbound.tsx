@@ -1,24 +1,18 @@
+import { useEffect } from 'react';
+import { useOutboundStore } from '../store/useOutboundStore';
 import OutboundStatCards from '../features/outbound/OutboundStatCards';
 import DispatchBatchBoard from '../features/outbound/DispatchBatchBoard';
-import { useLocation } from 'react-router-dom';
-import { BREADCRUMB_MAP } from '../constants/routes';
 
 export default function Outbound() {
+  const { fetchBatches } = useOutboundStore();
 
-  const location = useLocation();
-  const currentPathLabel = BREADCRUMB_MAP[location.pathname] || 'Dashboard';
+  useEffect(() => {
+    fetchBatches();
+  }, [fetchBatches]);
 
   return (
     <>
       <section aria-labelledby="outbound-heading" className="mx-auto max-w-6xl">
-
-        <div className="flex items-center gap-2 text-xs font-medium text-gray-500">
-          <span>Operations</span>
-          <span className="text-gray-300">/</span>
-          <span>HUB-JKS-01</span>
-          <span className="text-gray-300">/</span>
-          <span className="text-anteraja-primary font-bold">{currentPathLabel}</span>
-        </div>
 
         <div className="mb-6">
           <h1

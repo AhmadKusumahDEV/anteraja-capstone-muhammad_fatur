@@ -1,7 +1,8 @@
 import { useOutboundStore } from '../../store/useOutboundStore';
 import { useHubStore } from '../../store/useHubStore';
 import { generatePagination } from '../../utils/pagination';
-import DispatchBatchCard from './DispatchBatchCard';
+import { exportToCsv } from '../../utils/exportCsv';
+import DispatchBatchTableRow from './DispatchBatchTableRow';
 
 export default function DispatchBatchBoard() {
   // Subscribe to hubStore so this re-renders when batches change
@@ -21,6 +22,19 @@ export default function DispatchBatchBoard() {
   const paginatedBatches = getPaginatedBatches();
   const totalFiltered = getSortedFilteredBatches().length;
   const totalPages = getTotalPages();
+
+  const handleExport = () => {
+    const batches = getSortedFilteredBatches();
+    const headers = ['Kode Manifest', 'Nama Kurir', 'ID Kurir', 'Jumlah Paket', 'Status Dispatch'];
+    const rows = batches.map((batch) => [
+      batch.manifest_code,
+      batch.courier_name,
+      batch.courier_id,
+      batch.total_packages,
+      batch.status,
+    ]);
+    exportToCsv('outbound_dispatch_batches.csv', headers, rows);
+  };
 
   return (
     <section
@@ -63,6 +77,18 @@ export default function DispatchBatchBoard() {
             />
           </div>
 
+          {/* Export CSV */}
+          <button
+            type="button"
+            onClick={handleExport}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-600 transition-colors hover:bg-gray-50"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Export CSV
+          </button>
+
           {/* Add Button */}
           <button
             type="button"
@@ -87,19 +113,57 @@ export default function DispatchBatchBoard() {
         </div>
       </div>
 
-      {/* Board Grid */}
-      <div className="p-6">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {paginatedBatches.length > 0 ? (
-            paginatedBatches.map((batch) => (
-              <DispatchBatchCard key={batch.manifest_code} batch={batch} />
-            ))
-          ) : (
-            <div className="col-span-1 py-12 text-center text-sm text-gray-400 lg:col-span-2">
-              Tidak ada batch yang sesuai pencarian.
-            </div>
-          )}
-        </div>
+      {/* Table Content */}
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[800px]">
+          <thead>
+            <tr className="border-b border-gray-100 bg-white">
+              <th
+                scope="col"
+                className="py-4 pl-6 pr-3 text-left text-[10px] font-bold uppercase tracking-widest text-gray-400"
+              >
+                KODE MANIFEST
+              </th>
+              <th
+                scope="col"
+                className="px-3 py-4 text-left text-[10px] font-bold uppercase tracking-widest text-gray-400"
+              >
+                KURIR SATRIA
+              </th>
+              <th
+                scope="col"
+                className="px-3 py-4 text-center text-[10px] font-bold uppercase tracking-widest text-gray-400"
+              >
+                JUMLAH PAKET
+              </th>
+              <th
+                scope="col"
+                className="px-3 py-4 text-center text-[10px] font-bold uppercase tracking-widest text-gray-400"
+              >
+                STATUS DISPATCH
+              </th>
+              <th
+                scope="col"
+                className="py-4 pl-3 pr-6 text-right text-[10px] font-bold uppercase tracking-widest text-gray-400"
+              >
+                AKSI
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {paginatedBatches.length > 0 ? (
+              paginatedBatches.map((batch) => (
+                <DispatchBatchTableRow key={batch.manifest_code} batch={batch} />
+              ))
+            ) : (
+              <tr>
+                <td colSpan={5} className="py-12 text-center text-sm text-gray-400">
+                  Tidak ada batch yang sesuai pencarian.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
 
       {/* Board Footer / Pagination */}

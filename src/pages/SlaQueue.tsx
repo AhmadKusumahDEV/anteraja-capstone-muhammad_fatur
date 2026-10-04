@@ -3,9 +3,21 @@ import CapacityAlert from '../features/sla-queue/CapacityAlert';
 import MetricCards from '../features/sla-queue/MetricCards';
 import SlaQueueTable from '../features/sla-queue/SlaQueueTable';
 import QuickDispatchModal from '../features/sla-queue/QuickDispatchModal';
+import { useEffect } from 'react';
+import { useAuthStore } from '../store/useAuthStore';
+import { useHubStore } from '../store/useHubStore';
 
 export default function SlaQueue() {
-  const { refreshQueue } = useSlaQueueStore();
+  const { fetchQueue, refreshQueue } = useSlaQueueStore();
+  const { fetchHubCapacity } = useHubStore();
+  const { user } = useAuthStore();
+
+  useEffect(() => {
+    fetchQueue();
+    if (user?.hub_id) {
+      fetchHubCapacity(user.hub_id);
+    }
+  }, [fetchQueue, fetchHubCapacity, user?.hub_id]);
 
   return (
     <>

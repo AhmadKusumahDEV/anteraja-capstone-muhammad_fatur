@@ -1,5 +1,7 @@
 import type { HubPackage } from '../../types/hub';
 import { useSlaQueueStore } from '../../store/useSlaQueueStore';
+import { calcRemainingMs, calcSeverityZone, formatSlaCountdown } from '../../utils/sla';
+import { useState, useEffect } from 'react';
 
 const SLA_BADGE_STYLES = {
   CRITICAL: 'bg-red-100 text-red-700 ring-1 ring-red-200',
@@ -34,6 +36,23 @@ export default function SlaQueueTableRow({ pkg, index }: Props) {
   const { togglePriority, openDispatchModal } = useSlaQueueStore();
 
   const isPriority = pkg.is_priority;
+  
+  // Realtime SLA computation
+  const [remainingMs, setRemainingMs] = useState(() => calcRemainingMs(pkg.sla_deadline));
+  
+  useEffect(() => {
+    // Update immediately in case it changed since mount
+    setRemainingMs(calcRemainingMs(pkg.sla_deadline));
+    
+    const interval = setInterval(() => {
+      setRemainingMs(calcRemainingMs(pkg.sla_deadline));
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, [pkg.sla_deadline]);
+
+  const severityZone = calcSeverityZone(remainingMs);
+  const formattedCountdown = formatSlaCountdown(remainingMs);
 
   return (
     <tr
@@ -96,14 +115,14 @@ export default function SlaQueueTableRow({ pkg, index }: Props) {
       <td className="px-3 py-3.5">
         <span
           className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold tabular-nums ${
-            SLA_BADGE_STYLES[pkg.severity_zone]
+            SLA_BADGE_STYLES[severityZone]
           }`}
         >
           <span
-            className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${SLA_DOT_STYLES[pkg.severity_zone]}`}
+            className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${SLA_DOT_STYLES[severityZone]}`}
             aria-hidden="true"
           />
-          {pkg.remaining_minutes} mins
+          {formattedCountdown}
         </span>
       </td>
 

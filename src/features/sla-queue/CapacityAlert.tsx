@@ -1,10 +1,19 @@
 import { useSlaQueueStore } from '../../store/useSlaQueueStore';
+import { useHubStore } from '../../store/useHubStore';
 
 export default function CapacityAlert() {
-  const { metrics, alertDismissed, isCriticalFilterActive, dismissAlert, toggleCriticalFilter } =
+  const { alertDismissed, isCriticalFilterActive, dismissAlert, toggleCriticalFilter } =
     useSlaQueueStore();
+  
+  const { hubCapacity } = useHubStore();
 
-  if (!metrics.alert_triggered || alertDismissed) return null;
+  // Consider alert triggered if capacity > 90% or backend status is WARNING/CRITICAL
+  const isAlertTriggered = 
+    hubCapacity.capacity_status === 'WARNING' || 
+    hubCapacity.capacity_status === 'CRITICAL' || 
+    (hubCapacity.usage_percent && hubCapacity.usage_percent >= 90);
+
+  if (!isAlertTriggered || alertDismissed) return null;
 
   return (
     <div
@@ -34,11 +43,11 @@ export default function CapacityAlert() {
           Capacity Warning Alert
         </p>
         <p className="mt-0.5 text-sm text-amber-800">
-          Hub {metrics.hub_id} total workload (
-          <strong>In Hub: {metrics.in_hub_count}</strong> +{' '}
-          <strong>In Transit: {metrics.in_transit_count}</strong>) has reached{' '}
-          <strong>{metrics.capacity_percentage}%</strong> of max capacity (
-          {metrics.max_capacity} packages). Recommended Action: Trigger Priority Outbound
+          Hub {hubCapacity.hub_name || 'Terpilih'} total workload (
+          <strong>In Hub: {hubCapacity.current}</strong> +{' '}
+          <strong>In Transit: {hubCapacity.in_transit_load || 0}</strong>) has reached{' '}
+          <strong>{hubCapacity.usage_percent?.toFixed(1) || 0}%</strong> of max capacity (
+          {hubCapacity.max} packages). Recommended Action: Trigger Priority Outbound
           Dispatch to avoid SLA breach cascades.
         </p>
       </div>

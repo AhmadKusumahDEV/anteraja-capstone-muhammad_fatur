@@ -1,4 +1,5 @@
 import { useOutboundStore } from '../../store/useOutboundStore';
+import { calcRemainingMs, calcSeverityZone, formatSlaCountdown } from '../../utils/sla';
 
 const FLEET_LABEL: Record<string, string> = {
   MOTORCYCLE: 'Motor Fleet',
@@ -15,6 +16,32 @@ const SLA_BADGE_STYLES = {
   CRITICAL: 'bg-red-100 text-red-700 ring-1 ring-red-200',
   WARNING: 'bg-amber-100 text-amber-700 ring-1 ring-amber-200',
   NORMAL: 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200',
+};
+
+// Palet warna avatar (dipilih deterministik berdasarkan ID kurir)
+const AVATAR_COLORS = [
+  'bg-indigo-100 text-indigo-700',
+  'bg-sky-100 text-sky-700',
+  'bg-emerald-100 text-emerald-700',
+  'bg-amber-100 text-amber-700',
+  'bg-violet-100 text-violet-700',
+  'bg-teal-100 text-teal-700',
+  'bg-orange-100 text-orange-700',
+];
+
+/** "Andi Pratama" -> "AP", "Budi" -> "BU" */
+const getInitials = (name?: string): string => {
+  if (!name) return '?';
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '?';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
+
+const getAvatarColor = (seed: string): string => {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+  return AVATAR_COLORS[hash % AVATAR_COLORS.length];
 };
 
 export default function CreateBatchModal() {
@@ -34,6 +61,7 @@ export default function CreateBatchModal() {
     confirmCreateBatch,
     packageServiceFilter,
     setPackageServiceFilter,
+    isSubmitting,
   } = useOutboundStore();
 
   if (!isModalOpen) return null;
@@ -94,8 +122,13 @@ export default function CreateBatchModal() {
                     : 'border-gray-200 bg-white hover:border-gray-300'
                     }`}
                 >
-                  <span className={`flex h-9 w-9 items-center justify-center rounded-full text-[11px] font-bold text-white ${selectedCourierId === courier.id ? 'bg-anteraja-primary' : 'bg-gray-300'}`}>
-                    {courier.initials}
+                  <span
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold tracking-wide transition-all ${selectedCourierId === courier.id
+                      ? 'bg-anteraja-primary text-white shadow-md shadow-pink-200'
+                      : getAvatarColor(courier.id)
+                      }`}
+                  >
+                    {courier.initials || getInitials(courier.name)}
                   </span>
                   <div className="flex-1 min-w-0">
                     <p className={`text-sm font-bold ${selectedCourierId === courier.id ? 'text-anteraja-primary' : 'text-gray-900'}`}>{courier.name}</p>
@@ -199,8 +232,8 @@ export default function CreateBatchModal() {
                       <span className={`rounded-sm px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${SERVICE_BADGE_STYLES[pkg.service_type]}`}>
                         {pkg.service_type.replace('_', ' ')}
                       </span>
-                      <span className={`rounded-sm px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${SLA_BADGE_STYLES[pkg.severity_zone]}`}>
-                        SLA: {pkg.remaining_minutes} mnt
+                      <span className={`rounded-sm px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${SLA_BADGE_STYLES[calcSeverityZone(calcRemainingMs(pkg.sla_deadline))]}`}>
+                        SLA: {formatSlaCountdown(calcRemainingMs(pkg.sla_deadline))}
                       </span>
                     </div>
                     <span className={`text-xs font-medium ${isSelected ? 'text-anteraja-primary' : 'text-gray-400'}`}>
@@ -258,13 +291,25 @@ export default function CreateBatchModal() {
             <button
               type="button"
               onClick={confirmCreateBatch}
-              disabled={!selectedCourierId || selectedPackageIds.length === 0}
+              disabled={!selectedCourierId || selectedPackageIds.length === 0 || isSubmitting}
               className="inline-flex items-center gap-2 rounded-xl bg-anteraja-primary px-6 py-2 text-sm font-bold text-white shadow-sm hover:bg-anteraja-primary-dark active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
-              </svg>
-              Konfirmasi
+              {isSubmitting ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Memproses...
+                </>
+              ) : (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                  </svg>
+                  Konfirmasi
+                </>
+              )}
             </button>
           </div>
         </div>
