@@ -8,7 +8,7 @@ interface ManifestState {
   hubs: Hub[];
   manifests: ManifestLogEntry[];
 
-  selectedHubId: number | null;
+  selectedHubId: string | number | null;
   packageCount: number;
   etaOffsetMins: number;
   draftManifestCode: string;
@@ -27,7 +27,7 @@ interface ManifestState {
   getTotalPages: () => number;
   generateDraftCode: () => string;
 
-  setSelectedHub: (id: number | null) => void;
+  setSelectedHub: (id: string | number | null) => void;
   setPackageCount: (count: number) => void;
   setEtaOffsetMins: (mins: number) => void;
   resetForm: () => void;
@@ -64,7 +64,9 @@ export const useManifestStore = create<ManifestState>((set, get) => ({
   },
 
   getSelectedHub: () => {
-    const { hubs, selectedHubId } = get();
+    const { selectedHubId } = get();
+    // Use hubs from useHubStore to get the freshest data from API
+    const hubs = useHubStore.getState().hubs;
     return hubs.find((h) => h.id === selectedHubId);
   },
 

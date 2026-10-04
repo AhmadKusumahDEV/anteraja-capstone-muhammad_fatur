@@ -17,11 +17,12 @@ interface InboundState {
   // Sync actions — called by useHubStore
   addManifest: (manifest: InboundManifest) => void;
   updateManifestStatus: (code: string, status: InboundManifestStatus) => void;
-  updateManifestEta: (code: string, etaMs: number) => void;
+  updateManifestEta: (code: string, eta: string | number) => void;
 
   confirmingManifest: InboundManifest | null;
   openConfirmModal: (manifest: InboundManifest) => void;
   closeConfirmModal: () => void;
+  setManifests: (manifests: InboundManifest[]) => void;
 }
 
 export const useInboundStore = create<InboundState>((set, get) => ({
@@ -53,6 +54,8 @@ export const useInboundStore = create<InboundState>((set, get) => ({
   // ── Sync actions (called by useHubStore) ──
   addManifest: (manifest) =>
     set((state) => ({ manifests: [manifest, ...state.manifests] })),
+  
+  setManifests: (manifests) => set({ manifests }),
 
   updateManifestStatus: (code, status) =>
     set((state) => ({
@@ -61,10 +64,10 @@ export const useInboundStore = create<InboundState>((set, get) => ({
       ),
     })),
 
-  updateManifestEta: (code, etaMs) =>
+  updateManifestEta: (code, eta) =>
     set((state) => ({
       manifests: state.manifests.map((m) =>
-        m.manifest_code === code ? { ...m, eta_timestamp: etaMs } : m
+        m.manifest_code === code ? { ...m, eta_timestamp: eta } : m
       ),
     })),
 }));

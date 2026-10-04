@@ -1,9 +1,10 @@
 import { create } from 'zustand';
 import type {
   Hub, Courier, HubPackage, InboundManifest, OutboundBatch,
-  ManifestLogEntry, HubCapacity, ServiceType, SeverityZone,
+  ManifestLogEntry, HubCapacity, ServiceType,
   PackageStatus, InboundManifestStatus, DispatchStatus,
 } from '../types/hub';
+import api from '../services/api';
 
 // ─── Helper Functions ──────────────────────────────────────────────────────────
 const calcVehicleType = (count: number): string => {
@@ -12,11 +13,6 @@ const calcVehicleType = (count: number): string => {
   return 'Wingbox Truck';
 };
 
-const calcSeverityZone = (mins: number): SeverityZone => {
-  if (mins < 30) return 'CRITICAL';
-  if (mins <= 120) return 'WARNING';
-  return 'NORMAL';
-};
 
 const nowStr = (): string => {
   const now = new Date();
@@ -98,6 +94,7 @@ interface HubState {
 
   // Master actions — feature stores delegate here
   submitManifest: (packageCount: number, etaOffsetMins: number) => void;
+  addManifestFromBackend: (data: any) => void;
   fastForwardManifest: (manifestCode: string) => void;
   acknowledgeManifest: (manifestCode: string) => void;
   createOutboundBatch: (courierId: string, packageIds: string[]) => void;
@@ -108,6 +105,12 @@ interface HubState {
   closeDetailManifest: () => void;
 
   tickSla: () => void;
+
+  // New sync actions for API integration
+  setHubs: (hubs: Hub[]) => void;
+  setManifestLogs: (logs: ManifestLogEntry[]) => void;
+  setHubCapacity: (capacity: HubCapacity) => void;
+  fetchHubCapacity: (hubId: string) => Promise<void>;
 }
 
 // ─── Store ────────────────────────────────────────────────────────────────────
@@ -148,8 +151,6 @@ export const useHubStore = create<HubState>((set, get) => ({
         status: 'IN_TRANSIT' as PackageStatus,
         hub_arrival_timestamp: '',
         sla_deadline: '',
-        remaining_minutes: 0,
-        severity_zone: 'NORMAL' as SeverityZone,
         is_priority: Math.random() > 0.85,
       };
     });
@@ -193,27 +194,82 @@ export const useHubStore = create<HubState>((set, get) => ({
     import('./useManifestStore').then((m) =>
       m.useManifestStore.getState().addLog(newLog)
     );
-    import('./useSlaQueueStore').then((m) =>
-      m.useSlaQueueStore.getState().addInTransitPackages(packageCount)
-    );
   },
 
-  // ── Fast forward ETA (Percepat) ──
+  // ── Sync payload asli dari Backend ──
+  addManifestFromBackend: (backendData: any) => {
+    const { inboundManifests, manifestLogs } = get();
+
+    // Map packages
+    const packages: HubPackage[] = backendData.packages.map((pkg: any) => ({
+      tracking_id: pkg.tracking_id,
+      manifest_code: backendData.manifest_code,
+      service_type: pkg.service_type,
+      destination_area: pkg.destination_area,
+      status: pkg.status,
+      hub_arrival_timestamp: '',
+      sla_deadline: '',
+      is_priority: pkg.service_type === 'SAME_DAY',
+    }));
+
+    const etaDate = new Date(backendData.eta_timestamp);
+    const etaTimeStr = `${etaDate.getHours().toString().padStart(2, '0')}:${etaDate.getMinutes().toString().padStart(2, '0')}`;
+    const createdDate = new Date();
+    const createdStr = `2026-09-${createdDate.getDate().toString().padStart(2, '0')} ${createdDate.getHours().toString().padStart(2, '0')}:${createdDate.getMinutes().toString().padStart(2, '0')}`;
+
+    const newManifest: InboundManifest = {
+      manifest_code: backendData.manifest_code,
+      origin_hub_code: backendData.origin_hub_code,
+      origin_hub_name: backendData.origin_hub_name,
+      destination_hub_code: backendData.destination_hub_code,
+      destination_hub_name: backendData.destination_hub_code === 'HUB-JKS-01' ? 'Hub Jakarta Selatan' : backendData.destination_hub_code,
+      vehicle_type: backendData.vehicle_type,
+      vehicle_plate: `B ${Math.floor(1000 + Math.random() * 9000)} SY`, // dummy plate for now
+      total_packages: backendData.total_packages,
+      packages,
+      status: (backendData.status as InboundManifestStatus) ?? 'MENUNGGU_KEDATANGAN',
+      eta: `Tiba pukul ${etaTimeStr} WIB`,
+      eta_timestamp: etaDate.getTime(),
+      created_at: createdStr,
+    };
+
+    const newLog: ManifestLogEntry = {
+      manifest_code: backendData.manifest_code,
+      destination_hub_code: backendData.destination_hub_code,
+      destination_hub_name: newManifest.destination_hub_name,
+      total_packages: backendData.total_packages,
+      vehicle_type: backendData.vehicle_type,
+      created_at: createdStr,
+      hub_color: 'bg-emerald-500',
+      packages,
+    };
+
+    set({
+      inboundManifests: [newManifest, ...inboundManifests],
+      manifestLogs: [newLog, ...manifestLogs],
+    });
+
+    // Lazy sync to other stores
+    import('./useInboundStore').then((m) => m.useInboundStore.getState().addManifest(newManifest));
+    import('./useManifestStore').then((m) => m.useManifestStore.getState().addLog(newLog));
+  },
+
+  // ── Fast forward ETA (Percepat) — kept for local-only demo usage ──
   fastForwardManifest: (manifestCode) => {
     const { inboundManifests } = get();
     const newEtaMs = Date.now() - 1000;
     set({
       inboundManifests: inboundManifests.map((m) =>
         m.manifest_code === manifestCode
-          ? { ...m, eta_timestamp: newEtaMs } // Simulate it arrived in the past
+          ? { ...m, eta_timestamp: newEtaMs, status: 'MENUNGGU_KONFIRMASI' as InboundManifestStatus }
           : m
       ),
     });
 
     // Sync to inbound store (force re-render)
     import('./useInboundStore').then((m) => {
+      m.useInboundStore.getState().updateManifestStatus(manifestCode, 'MENUNGGU_KONFIRMASI');
       m.useInboundStore.getState().updateManifestEta(manifestCode, newEtaMs);
-      m.useInboundStore.getState().setPage(m.useInboundStore.getState().currentPage);
     });
   },
 
@@ -235,13 +291,13 @@ export const useHubStore = create<HubState>((set, get) => ({
         pkg.service_type === 'SAME_DAY'
           ? Math.floor(Math.random() * 90 + 30)    // 30–120 mins (WARNING zone)
           : Math.floor(Math.random() * 180 + 120);  // 120–300 mins (NORMAL zone)
+      // Dummy sla_deadline generation for testing (using ISO format)
+      const dummyDeadline = new Date(Date.now() + (remainingMins * 60000)).toISOString();
       return {
         ...pkg,
         status: 'IN_HUB' as PackageStatus,
         hub_arrival_timestamp: now,
-        sla_deadline: now,
-        remaining_minutes: remainingMins,
-        severity_zone: calcSeverityZone(remainingMins),
+        sla_deadline: dummyDeadline,
       };
     });
 
@@ -265,10 +321,6 @@ export const useHubStore = create<HubState>((set, get) => ({
     import('./useInboundStore').then((m) =>
       m.useInboundStore.getState().updateManifestStatus(manifestCode, 'SUDAH_DITERIMA')
     );
-    import('./useSlaQueueStore').then((m) => {
-      m.useSlaQueueStore.getState().addPackages(updatedPackages);
-      m.useSlaQueueStore.getState().updateMetrics(incoming);
-    });
     import('./useOutboundStore').then((m) =>
       m.useOutboundStore.getState().syncAvailablePackages(
         newHubPackages.filter((p) => p.status === 'IN_HUB')
@@ -307,10 +359,6 @@ export const useHubStore = create<HubState>((set, get) => ({
     });
 
     // Sync to feature stores
-    import('./useSlaQueueStore').then((m) => {
-      m.useSlaQueueStore.getState().removePackages(packageIds);
-      m.useSlaQueueStore.getState().updateMetrics(-packageIds.length);
-    });
     import('./useOutboundStore').then((m) => {
       m.useOutboundStore.getState().addBatch(newBatch);
       m.useOutboundStore.getState().syncAvailablePackages(
@@ -356,26 +404,39 @@ export const useHubStore = create<HubState>((set, get) => ({
   closeDetailManifest: () => set({ isDetailOpen: false, activeDetailManifest: null }),
 
   // ── SLA Tick (Runs every minute/second) ──
+  // Removed logic because SLA is now computed on the fly by SlaQueueTableRow
   tickSla: () => {
-    const { hubPackages } = get();
-    const updatedPackages = hubPackages.map((pkg) => {
-      if (pkg.status === 'IN_HUB') {
-        const newMins = pkg.remaining_minutes - 1;
-        return {
-          ...pkg,
-          remaining_minutes: newMins,
-          severity_zone: calcSeverityZone(newMins),
-        };
+    // Left empty on purpose. Realtime computation handled by component level interval.
+  },
+
+  // ── Sync actions for API integration ──
+  setHubs: (hubs) => set({ hubs }),
+  setManifestLogs: (logs) => {
+    set({ manifestLogs: logs });
+    import('./useManifestStore').then((m) => {
+      m.useManifestStore.setState({ manifests: logs });
+    });
+  },
+  setHubCapacity: (capacity) => set({ hubCapacity: capacity }),
+  
+  fetchHubCapacity: async (hubId) => {
+    try {
+      const { data } = await api.get(`/hubs/${hubId}/capacity`);
+      if (data.success) {
+        const cap = data.data;
+        set({
+          hubCapacity: {
+            current:          cap.current_load,
+            max:              cap.max_capacity,
+            hub_name:         cap.hub_name,
+            usage_percent:    cap.usage_percent,
+            capacity_status:  cap.capacity_status,
+            in_transit_load:  cap.in_transit_load,
+          }
+        });
       }
-      return pkg;
-    });
-
-    set({ hubPackages: updatedPackages });
-
-    // Sync SlaQueueStore
-    import('./useSlaQueueStore').then((m) => {
-      const inHubPkgs = updatedPackages.filter((p) => p.status === 'IN_HUB');
-      m.useSlaQueueStore.setState({ packages: inHubPkgs });
-    });
+    } catch (err) {
+      console.error('[HubStore] Failed to fetch hub capacity:', err);
+    }
   },
 }));

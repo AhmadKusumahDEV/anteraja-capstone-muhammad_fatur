@@ -1,6 +1,11 @@
 import { create } from 'zustand';
 import type { OutboundBatch, HubPackage, Courier, DispatchStatus } from '../types/hub';
 import { useHubStore } from './useHubStore';
+import { useSlaQueueStore } from './useSlaQueueStore';
+import { useAuthStore } from './useAuthStore';
+import { calcRemainingMs, calcSeverityZone } from '../utils/sla';
+import api from '../services/api';
+import toast from 'react-hot-toast';
 
 const ITEMS_PER_PAGE = 4;
 
@@ -20,11 +25,13 @@ interface OutboundState {
 
   isModalOpen: boolean;
   availableCouriers: Courier[];
-  selectedCourierId: string | null;
   availablePackages: HubPackage[];
+  selectedCourierId: string | null;
   selectedPackageIds: string[];
   packageSearchQuery: string;
   packageServiceFilter: 'ALL' | 'SAME_DAY' | 'NEXT_DAY' | 'REGULAR';
+  isLoading: boolean;
+  isSubmitting: boolean;
 
   getSortedFilteredBatches: () => OutboundBatch[];
   getPaginatedBatches: () => OutboundBatch[];
@@ -33,10 +40,11 @@ interface OutboundState {
 
   setPage: (page: number) => void;
   setSearchQuery: (query: string) => void;
-  departBatch: (manifestCode: string) => void;
-  completeBatch: (manifestCode: string) => void;
+  fetchBatches: () => Promise<void>;
+  departBatch: (manifestCode: string) => Promise<void>;
+  completeBatch: (manifestCode: string) => Promise<void>;
 
-  openModal: () => void;
+  openModal: () => Promise<void>;
   closeModal: () => void;
   selectCourier: (id: string) => void;
   togglePackageSelection: (id: string) => void;
@@ -44,7 +52,7 @@ interface OutboundState {
   selectAllPriorityPackages: () => void;
   setPackageSearchQuery: (query: string) => void;
   setPackageServiceFilter: (filter: 'ALL' | 'SAME_DAY' | 'NEXT_DAY' | 'REGULAR') => void;
-  confirmCreateBatch: () => void;
+  confirmCreateBatch: () => Promise<void>;
 
   // Sync actions — called by useHubStore
   addBatch: (batch: OutboundBatch) => void;
@@ -79,6 +87,8 @@ export const useOutboundStore = create<OutboundState>((set, get) => ({
   selectedPackageIds: [],
   packageSearchQuery: '',
   packageServiceFilter: 'ALL',
+  isLoading: false,
+  isSubmitting: false,
 
   getSortedFilteredBatches: () => {
     const { batches, searchQuery } = get();
@@ -119,8 +129,10 @@ export const useOutboundStore = create<OutboundState>((set, get) => ({
 
     // Urutkan berdasarkan sisa waktu SLA terdikit terlebih dahulu
     filtered.sort((a, b) => {
-      if (a.remaining_minutes !== b.remaining_minutes) {
-        return a.remaining_minutes - b.remaining_minutes;
+      const remainingA = calcRemainingMs(a.sla_deadline);
+      const remainingB = calcRemainingMs(b.sla_deadline);
+      if (remainingA !== remainingB) {
+        return remainingA - remainingB;
       }
       return a.is_priority ? -1 : 1;
     });
@@ -131,23 +143,78 @@ export const useOutboundStore = create<OutboundState>((set, get) => ({
   setPage: (page) => set({ currentPage: page }),
   setSearchQuery: (query) => set({ searchQuery: query, currentPage: 1 }),
 
-  departBatch: (manifestCode) => {
-    useHubStore.getState().departBatch(manifestCode);
+  fetchBatches: async () => {
+    set({ isLoading: true });
+    try {
+      const { data } = await api.get('/outbound/manifests');
+      if (data.success) {
+        set({ batches: data.data, stats: buildStats(data.data) });
+      }
+    } catch (error) {
+      console.error('Failed to fetch outbound batches:', error);
+    } finally {
+      set({ isLoading: false });
+    }
   },
 
-  completeBatch: (manifestCode) => {
-    useHubStore.getState().completeBatch(manifestCode);
+  departBatch: async (manifestCode) => {
+    try {
+      await api.patch(`/outbound/${manifestCode}/depart`);
+      toast.success('Batch diberangkatkan!');
+      // Sequential update
+      get().updateBatchStatus(manifestCode, 'DALAM_PENGANTARAN');
+      
+      // Refresh capacity
+      const user = useAuthStore.getState().user;
+      if (user?.hub_id) useHubStore.getState().fetchHubCapacity(user.hub_id);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Gagal memberangkatkan batch');
+    }
   },
 
-  openModal: () => {
-    const couriers = useHubStore.getState().couriers.filter(c => c.status === 'STANDBY');
+  completeBatch: async (manifestCode) => {
+    try {
+      await api.patch(`/outbound/${manifestCode}/complete`);
+      toast.success('Batch selesai!');
+      // Sequential update
+      get().updateBatchStatus(manifestCode, 'SELESAI');
+      
+      // Jika ada paket baru di Hub yang diantar kembali / kurir menjadi standby
+      // Kurir menjadi STANDBY kembali, jadi tidak perlu refetch standby courier di sini 
+      // (akan difetch ulang saat modal dibuka)
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Gagal menyelesaikan batch');
+    }
+  },
+
+  openModal: async () => {
+    // Ambil paket IN_HUB secara reaktif dari useSlaQueueStore 
+    // agar tidak perlu fetch API paket lagi (hemat bandwidth)
+    const currentHubPackages = useSlaQueueStore.getState().packages;
+
     set({ 
       isModalOpen: true, 
       selectedCourierId: null, 
       selectedPackageIds: [], 
       packageSearchQuery: '',
-      availableCouriers: couriers
+      availablePackages: currentHubPackages,
+      availableCouriers: [], // Reset sementara sebelum fetch
+      isLoading: true
     });
+
+    try {
+      const { data } = await api.get('/hubs/couriers/standby');
+      if (data.success) {
+        set({ availableCouriers: data.data });
+      }
+    } catch (err) {
+      console.error('Failed to fetch standby couriers:', err);
+      // Fallback ke dummy jika backend belum siap
+      const dummyCouriers = useHubStore.getState().couriers.filter(c => c.status === 'STANDBY');
+      set({ availableCouriers: dummyCouriers });
+    } finally {
+      set({ isLoading: false });
+    }
   },
   closeModal: () => set({ isModalOpen: false }),
   selectCourier: (id) => set({ selectedCourierId: id }),
@@ -172,7 +239,11 @@ export const useOutboundStore = create<OutboundState>((set, get) => ({
   selectAllPriorityPackages: () => {
     set((state) => {
       const priorityIds = state.getFilteredAvailablePackages()
-        .filter((p) => p.is_priority || p.severity_zone === 'CRITICAL')
+        .filter((p) => {
+          const remaining = calcRemainingMs(p.sla_deadline);
+          const zone = calcSeverityZone(remaining);
+          return p.is_priority || zone === 'CRITICAL';
+        })
         .map((p) => p.tracking_id);
       
       if (priorityIds.length === 0) return state;
@@ -184,11 +255,53 @@ export const useOutboundStore = create<OutboundState>((set, get) => ({
 
   setPackageServiceFilter: (filter) => set({ packageServiceFilter: filter }),
 
-  confirmCreateBatch: () => {
+  confirmCreateBatch: async () => {
     const { selectedCourierId, selectedPackageIds } = get();
     if (!selectedCourierId || selectedPackageIds.length === 0) return;
-    useHubStore.getState().createOutboundBatch(selectedCourierId, selectedPackageIds);
-    set({ isModalOpen: false, selectedCourierId: null, selectedPackageIds: [], packageSearchQuery: '' });
+    
+    set({ isSubmitting: true });
+    try {
+      const { data } = await api.post('/outbound/dispatch', {
+        courier_id: selectedCourierId,
+        package_ids: selectedPackageIds,
+      });
+      
+      if (data.success) {
+        toast.success(data.message || 'Batch berhasil dibuat!');
+        const newManifest = data.data;
+
+        // Push ke list batches frontend (Optimistic / cache manual)
+        get().addBatch({
+          manifest_code: newManifest.manifest_code,
+          courier_id: newManifest.courier_id,
+          courier_name: newManifest.courier_name,
+          total_packages: newManifest.total_packages,
+          status: newManifest.status,
+          package_ids: selectedPackageIds,
+          created_at: new Date().toISOString()
+        });
+        
+        // Bersihkan state modal
+        set({ isModalOpen: false, selectedCourierId: null, selectedPackageIds: [], packageSearchQuery: '' });
+
+        // Wajib Sinkronisasi Ulang
+        // 1. Refresh SLA Queue (paket tadi otomatis hilang karena bukan IN_HUB lagi)
+        useSlaQueueStore.getState().fetchQueue();
+        
+        // 2. Refresh Capacity (current_load berkurang)
+        const user = useAuthStore.getState().user;
+        if (user?.hub_id) {
+          useHubStore.getState().fetchHubCapacity(user.hub_id);
+        }
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Gagal membuat batch.');
+      // Refetch SLA & Couriers jaga-jaga kalau error validasi data basi
+      useSlaQueueStore.getState().fetchQueue();
+      get().openModal(); // Akan re-fetch couriers standby
+    } finally {
+      set({ isSubmitting: false });
+    }
   },
 
   // ── Sync actions (called by useHubStore) ──
