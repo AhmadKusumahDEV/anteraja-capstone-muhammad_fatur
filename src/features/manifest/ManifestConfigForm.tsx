@@ -5,24 +5,41 @@ import { useState } from 'react';
 import api from '../../services/api';
 
 export default function ManifestConfigForm() {
-  const { packageCount, setPackageCount, resetForm, selectedHubId, setSelectedHub } = useManifestStore();
+  const {
+    packageCount,
+    setPackageCount,
+    resetForm,
+    selectedHubId,
+    setSelectedHub,
+    originHubId,
+    setOriginHub,
+  } = useManifestStore();
   const hubs = useHubStore((state) => state.hubs);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleGenerate = async () => {
     setIsSubmitting(true);
-    const draftCode = useManifestStore.getState().draftManifestCode;
-    const etaOffsetMins = useManifestStore.getState().etaOffsetMins;
+    const { customManifestCode, etaOffsetMins, originHubId } = useManifestStore.getState();
     const selectedHub = hubs.find(h => h.id === selectedHubId) || hubs[0];
+    const originHub = hubs.find(h => h.id === originHubId);
 
     try {
-      const { data } = await api.post('/manifests/generate', {
-        manifest_code: draftCode,
+      const payload: any = {
         destination_hub_id: selectedHub?.hub_code || 'HUB-JKS-01',
         total_packages: packageCount,
         eta_offset_minutes: etaOffsetMins
-      });
+      };
+
+      if (customManifestCode.trim()) {
+        payload.manifest_code = customManifestCode.trim();
+      }
+
+      if (originHub) {
+        payload.origin_hub_id = originHub.hub_code;
+      }
+
+      const { data } = await api.post('/manifests/generate', payload);
 
       if (!data.success) {
         throw new Error(data.message || 'Gagal generate manifest');
@@ -111,6 +128,38 @@ export default function ManifestConfigForm() {
             </div>
           </div>
           <p className="mt-1 text-[10px] text-gray-400">Pilihan dikunci ke Hub Anda untuk kebutuhan demo saat ini.</p>
+        </div>
+
+        {/* Hub Asal */}
+        <div className="mb-6">
+          <label htmlFor="origin-hub-select" className="mb-2 block text-[11px] font-bold uppercase tracking-widest text-gray-500">
+            HUB ASAL (ORIGIN) <span className="text-gray-400 font-normal ml-1">(Opsional)</span>
+          </label>
+          <div className="relative">
+            <select
+              id="origin-hub-select"
+              value={originHubId || ''}
+              onChange={(e) => setOriginHub(e.target.value)}
+              className="w-full appearance-none rounded-xl border border-gray-200 bg-white py-2.5 pl-9 pr-10 text-sm font-medium text-gray-800 transition-colors focus:border-anteraja-primary focus:outline-none focus:ring-1 focus:ring-anteraja-primary"
+            >
+              <option value="">Acak (Random)</option>
+              {hubs.map((hub) => (
+                <option key={hub.id} value={hub.id}>
+                  {hub.hub_code} • {hub.hub_name}
+                </option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+              </svg>
+            </div>
+          </div>
         </div>
 
         {/* Jumlah Paket */}

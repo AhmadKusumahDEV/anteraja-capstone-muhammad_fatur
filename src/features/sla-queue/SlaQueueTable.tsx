@@ -61,8 +61,8 @@ export default function SlaQueueTable() {
       aria-labelledby="sla-table-heading"
     >
       {/* Table Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-gray-100 px-5 py-4">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-gray-100 px-5 py-4">
+        <div className="flex flex-wrap items-center gap-3">
           {/* Icon */}
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50">
             <svg
@@ -88,12 +88,12 @@ export default function SlaQueueTable() {
         </div>
 
         {/* Search + Service Filter */}
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 w-full lg:w-auto">
           {/* Search */}
           <label htmlFor="sla-search" className="sr-only">
             Cari Tracking ID
           </label>
-          <div className="relative">
+          <div className="relative w-full sm:w-auto">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400"
@@ -113,12 +113,12 @@ export default function SlaQueueTable() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search Tracking ID (e.g. TRK-213)"
-              className="w-56 rounded-lg border border-gray-200 bg-white py-1.5 pl-8 pr-3 text-xs text-gray-700 placeholder:text-gray-400 focus:border-anteraja-primary focus:outline-none focus:ring-2 focus:ring-anteraja-primary/20"
+              className="w-full sm:w-56 rounded-lg border border-gray-200 bg-white py-1.5 pl-8 pr-3 text-xs text-gray-700 placeholder:text-gray-400 focus:border-anteraja-primary focus:outline-none focus:ring-2 focus:ring-anteraja-primary/20"
             />
           </div>
 
           {/* Service Filter */}
-          <div className="flex items-center gap-1.5 border-l border-gray-100 pl-3">
+          <div className="flex items-center gap-1.5 border-l border-gray-100 pl-3 w-full sm:w-auto">
             <label htmlFor="service-filter" className="text-xs font-medium text-gray-500">
               Service:
             </label>
@@ -176,7 +176,7 @@ export default function SlaQueueTable() {
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="w-full min-w-[700px]">
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50/70">
               <th className="w-1 p-0" aria-hidden="true" />

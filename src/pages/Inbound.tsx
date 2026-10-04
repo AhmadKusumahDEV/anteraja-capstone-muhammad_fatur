@@ -3,13 +3,11 @@ import InboundStatWidget from '../features/inbound/InboundStatWidget';
 import InboundTable from '../features/inbound/InboundTable';
 import HubCapacityCard from '../components/HubCapacityCard';
 import InboundConfirmModal from '../features/inbound/InboundConfirmModal';
-import api from '../services/api';
 import { useInboundStore } from '../store/useInboundStore';
 import { useHubStore } from '../store/useHubStore';
 import { useAuthStore } from '../store/useAuthStore';
 
 export default function Inbound() {
-  const setManifests = useInboundStore((state) => state.setManifests);
   const fetchHubCapacity = useHubStore((state) => state.fetchHubCapacity);
   const user = useAuthStore((state) => state.user);
 

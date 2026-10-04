@@ -39,7 +39,7 @@ export default function InboundTable() {
       aria-labelledby="inbound-table-heading"
     >
       {/* Table Header */}
-      <div className="flex flex-wrap items-center justify-between border-b border-gray-100 px-6 py-5">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-gray-100 px-6 py-5">
         <div className="flex items-center gap-3">
           {/* Accent line (pink) matching mockup */}
           <div className="h-5 w-1.5 rounded-full bg-anteraja-primary" aria-hidden="true" />
@@ -67,7 +67,7 @@ export default function InboundTable() {
 
       {/* Table Content */}
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[800px]">
+        <table className="w-full min-w-[700px]">
           <thead>
             <tr className="border-b border-gray-100 bg-white">
               <th

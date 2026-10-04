@@ -2,9 +2,10 @@ import { useManifestStore } from '../../store/useManifestStore';
 import { useHubStore } from '../../store/useHubStore';
 
 export default function ManifestPreview() {
-  const { packageCount, draftManifestCode, selectedHubId } = useManifestStore();
+  const { packageCount, customManifestCode, selectedHubId, originHubId } = useManifestStore();
   const hubs = useHubStore((state) => state.hubs);
   const selectedHub = hubs.find((h) => h.id === selectedHubId);
+  const originHub = hubs.find((h) => h.id === originHubId);
 
   return (
     <article className="flex h-full flex-col rounded-2xl border border-surface-border bg-white shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
@@ -29,7 +30,7 @@ export default function ManifestPreview() {
             ESTIMASI KODE MANIFEST:
           </p>
           <p className="mt-1 font-mono text-2xl font-bold tracking-tight text-pink-400 drop-shadow-[0_0_8px_rgba(244,114,182,0.6)]">
-            {draftManifestCode}
+            {customManifestCode}
           </p>
         </div>
 
@@ -38,7 +39,7 @@ export default function ManifestPreview() {
           <div className="flex items-start justify-between border-b border-dashed border-gray-200 pb-4">
             <span className="text-gray-500">Rute Pengiriman:</span>
             <div className="text-right font-semibold text-gray-900">
-              HUB-JKS-01
+              {originHub ? originHub.hub_code : <span className="text-gray-400 italic">Acak (Random)</span>}
               <span className="mx-2 text-gray-300">→</span>
               {selectedHub ? selectedHub.hub_code : <span className="text-gray-400 italic">Belum dipilih</span>}
             </div>

@@ -24,7 +24,7 @@ export default function SlaQueue() {
       {/* ── Page Content ── */}
       <section aria-labelledby="sla-queue-heading">
         {/* Page Header */}
-        <div className="mb-6 flex items-start justify-between">
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
           <div>
             <h1
               id="sla-queue-heading"

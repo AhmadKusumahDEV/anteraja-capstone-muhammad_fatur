@@ -52,9 +52,9 @@ export default function DispatchBatchBoard() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto mt-2 lg:mt-0">
           {/* Search */}
-          <div className="relative">
+          <div className="relative w-full sm:w-auto">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400"
@@ -73,7 +73,7 @@ export default function DispatchBatchBoard() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari Kurir / Manifest..."
-              className="w-56 rounded-xl border border-gray-200 bg-gray-50/50 py-2 pl-8 pr-3 text-xs text-gray-700 placeholder:text-gray-400 focus:border-anteraja-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-anteraja-primary/20"
+              className="w-full sm:w-56 rounded-xl border border-gray-200 bg-gray-50/50 py-2 pl-8 pr-3 text-xs text-gray-700 placeholder:text-gray-400 focus:border-anteraja-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-anteraja-primary/20"
             />
           </div>
 
@@ -115,7 +115,7 @@ export default function DispatchBatchBoard() {
 
       {/* Table Content */}
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[800px]">
+        <table className="w-full min-w-[700px]">
           <thead>
             <tr className="border-b border-gray-100 bg-white">
               <th
