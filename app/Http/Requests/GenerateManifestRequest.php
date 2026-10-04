@@ -18,6 +18,7 @@ class GenerateManifestRequest extends FormRequest
     {
         return [
             'manifest_code'      => 'nullable|string|max:50|unique:manifests,manifest_code',
+            'origin_hub_id'      => 'nullable|string|exists:hubs,id',
             'destination_hub_id' => 'required|string|exists:hubs,id',
             'total_packages'     => 'required|integer|min:1|max:150',
             'eta_offset_minutes' => 'required|integer|min:0',
