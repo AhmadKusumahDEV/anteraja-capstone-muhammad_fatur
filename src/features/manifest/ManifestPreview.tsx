@@ -1,8 +1,10 @@
 import { useManifestStore } from '../../store/useManifestStore';
+import { useHubStore } from '../../store/useHubStore';
 
 export default function ManifestPreview() {
-  const { packageCount, draftManifestCode, getSelectedHub } = useManifestStore();
-  const selectedHub = getSelectedHub();
+  const { packageCount, draftManifestCode, selectedHubId } = useManifestStore();
+  const hubs = useHubStore((state) => state.hubs);
+  const selectedHub = hubs.find((h) => h.id === selectedHubId);
 
   return (
     <article className="flex h-full flex-col rounded-2xl border border-surface-border bg-white shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
@@ -22,7 +24,7 @@ export default function ManifestPreview() {
       {/* Body */}
       <div className="flex flex-1 flex-col p-6">
         {/* Code Display */}
-        <div className="mb-6 rounded-2xl bg-[#1A1025] p-5 shadow-inner">
+        <div className="mb-6 rounded-2xl bg-gray-900 p-5 shadow-inner">
           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
             ESTIMASI KODE MANIFEST:
           </p>

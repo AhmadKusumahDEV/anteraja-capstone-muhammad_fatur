@@ -1,21 +1,64 @@
 import { useManifestStore } from '../../store/useManifestStore';
+import { useHubStore } from '../../store/useHubStore';
 import toast from 'react-hot-toast';
+import { useState } from 'react';
+import api from '../../services/api';
 
 export default function ManifestConfigForm() {
-  const { packageCount, setPackageCount, resetForm, submitManifest } = useManifestStore();
+  const { packageCount, setPackageCount, resetForm, selectedHubId, setSelectedHub } = useManifestStore();
+  const hubs = useHubStore((state) => state.hubs);
 
-  const handleGenerate = () => {
-    submitManifest();
-    
-    toast.success(`Manifest dengan ${packageCount} paket berhasil di-generate!`, {
-      icon: '🚚',
-      style: {
-        background: '#ECFDF5',
-        color: '#065F46',
-        fontWeight: 'bold',
-        border: '1px solid #6EE7B7'
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleGenerate = async () => {
+    setIsSubmitting(true);
+    const draftCode = useManifestStore.getState().draftManifestCode;
+    const etaOffsetMins = useManifestStore.getState().etaOffsetMins;
+    const selectedHub = hubs.find(h => h.id === selectedHubId) || hubs[0];
+
+    try {
+      const { data } = await api.post('/manifests/generate', {
+        manifest_code: draftCode,
+        destination_hub_id: selectedHub?.hub_code || 'HUB-JKS-01',
+        total_packages: packageCount,
+        eta_offset_minutes: etaOffsetMins
+      });
+
+      if (!data.success) {
+        throw new Error(data.message || 'Gagal generate manifest');
       }
-    });
+
+      import('../../store/useHubStore').then(module => {
+        module.useHubStore.getState().addManifestFromBackend(data.data);
+      });
+
+      useManifestStore.getState().resetForm();
+
+      toast.success(`Manifest dengan ${packageCount} paket berhasil di-generate!`, {
+        icon: '🚚',
+        style: {
+          background: '#ECFDF5',
+          color: '#065F46',
+          fontWeight: 'bold',
+          border: '1px solid #6EE7B7'
+        }
+      });
+    } catch (error: any) {
+      const errorMsg = error.response?.data?.errors
+        ? Object.values(error.response.data.errors).flat().join(', ')
+        : error.response?.data?.message || error.message || 'Server Backend tidak merespon';
+
+      toast.error(`Gagal Integrasi: ${errorMsg}`, {
+        style: {
+          background: '#FEF2F2',
+          color: '#991B1B',
+          fontWeight: 'bold',
+          border: '1px solid #F87171'
+        }
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -43,11 +86,16 @@ export default function ManifestConfigForm() {
           <div className="relative">
             <select
               id="hub-select"
-              value={1}
-              disabled
-              className="w-full appearance-none rounded-xl border border-gray-200 bg-gray-50/50 py-3 pl-10 pr-10 text-sm font-semibold text-gray-800 transition-colors focus:border-anteraja-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-anteraja-primary"
+              value={selectedHubId || ''}
+              onChange={(e) => setSelectedHub(e.target.value)}
+              className="w-full appearance-none rounded-xl border border-gray-200 bg-white py-3 pl-10 pr-10 text-sm font-semibold text-gray-800 transition-colors focus:border-anteraja-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-anteraja-primary"
             >
-              <option value={1}>HUB-JKS-01 • Hub Jakarta Selatan</option>
+              <option value="" disabled>Pilih Hub Tujuan...</option>
+              {hubs.map((hub) => (
+                <option key={hub.id} value={hub.id}>
+                  {hub.hub_code} • {hub.hub_name}
+                </option>
+              ))}
             </select>
             {/* Custom Arrow */}
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
@@ -97,11 +145,10 @@ export default function ManifestConfigForm() {
                 key={preset}
                 type="button"
                 onClick={() => setPackageCount(preset)}
-                className={`rounded-lg border px-3 py-1 text-xs font-semibold transition-colors ${
-                  packageCount === preset
-                    ? 'border-anteraja-primary bg-pink-50 text-anteraja-primary'
-                    : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
-                }`}
+                className={`rounded-lg border px-3 py-1 text-xs font-semibold transition-colors ${packageCount === preset
+                  ? 'border-anteraja-primary bg-pink-50 text-anteraja-primary'
+                  : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
+                  }`}
               >
                 {preset} Pkt
               </button>
@@ -109,11 +156,10 @@ export default function ManifestConfigForm() {
             <button
               type="button"
               onClick={() => setPackageCount(100)}
-              className={`rounded-lg border px-3 py-1 text-xs font-semibold transition-colors ${
-                packageCount === 100
-                  ? 'border-anteraja-primary bg-pink-50 text-anteraja-primary'
-                  : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
-              }`}
+              className={`rounded-lg border px-3 py-1 text-xs font-semibold transition-colors ${packageCount === 100
+                ? 'border-anteraja-primary bg-pink-50 text-anteraja-primary'
+                : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
+                }`}
             >
               100 Pkt (Feeder Truck)
             </button>
@@ -128,19 +174,18 @@ export default function ManifestConfigForm() {
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
               { label: 'Sekarang', value: 0 },
-              { label: '+15 Menit', value: 15 },
-              { label: '+30 Menit', value: 30 },
+              { label: '+5 Menit', value: 5 },
+              { label: '+20 Menit', value: 20 },
               { label: '+1 Jam', value: 60 }
             ].map((opt) => (
               <button
                 key={opt.value}
                 type="button"
                 onClick={() => useManifestStore.getState().setEtaOffsetMins(opt.value)}
-                className={`flex flex-col items-center rounded-xl border p-3 text-sm font-bold transition-all ${
-                  useManifestStore.getState().etaOffsetMins === opt.value
-                    ? 'border-anteraja-primary bg-pink-50 text-anteraja-primary shadow-sm'
-                    : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50'
-                }`}
+                className={`flex flex-col items-center rounded-xl border p-3 text-sm font-bold transition-all ${useManifestStore.getState().etaOffsetMins === opt.value
+                  ? 'border-anteraja-primary bg-pink-50 text-anteraja-primary shadow-sm'
+                  : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50'
+                  }`}
               >
                 {opt.label}
               </button>
@@ -160,12 +205,20 @@ export default function ManifestConfigForm() {
           <button
             type="button"
             onClick={handleGenerate}
-            className="inline-flex items-center gap-2 rounded-xl bg-anteraja-primary px-6 py-3 text-sm font-bold text-white shadow-sm transition-all hover:bg-anteraja-primary-dark active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={isSubmitting}
+            className="inline-flex items-center gap-2 rounded-xl bg-anteraja-primary px-6 py-3 text-sm font-bold text-white shadow-sm transition-all hover:bg-anteraja-primary-dark active:scale-[0.98] disabled:cursor-wait disabled:opacity-50"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-            </svg>
-            Buat &amp; Kirim Skenario Manifest
+            {isSubmitting ? (
+              <svg className="h-4 w-4 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+              </svg>
+            )}
+            {isSubmitting ? 'Memproses...' : 'Buat & Kirim Skenario Manifest'}
           </button>
         </div>
       </div>

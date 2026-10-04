@@ -1,6 +1,7 @@
 import { useInboundStore } from '../../store/useInboundStore';
 import { useHubStore } from '../../store/useHubStore';
 import { generatePagination } from '../../utils/pagination';
+import { exportToCsv } from '../../utils/exportCsv';
 import InboundTableRow from './InboundTableRow';
 
 export default function InboundTable() {
@@ -19,6 +20,19 @@ export default function InboundTable() {
   const paginated = getPaginatedManifests();
   const totalPages = getTotalPages();
 
+  const handleExport = () => {
+    const headers = ['Kode Manifest', 'Hub Asal', 'Hub Tujuan', 'Waktu Kedatangan', 'Jumlah Paket', 'Status'];
+    const rows = manifests.map((m) => [
+      m.manifest_code,
+      `${m.origin_hub_code} - ${m.origin_hub_name}`,
+      `${m.destination_hub_code} - ${m.destination_hub_name}`,
+      new Date(m.eta_timestamp).toLocaleString('id-ID'),
+      m.total_packages,
+      m.status,
+    ]);
+    exportToCsv('inbound_manifests.csv', headers, rows);
+  };
+
   return (
     <section
       className="mt-6 rounded-2xl border border-surface-border bg-white shadow-[0_1px_3px_rgba(15,23,42,0.04)]"
@@ -34,12 +48,21 @@ export default function InboundTable() {
           </h2>
         </div>
 
-        {/* Sort Button */}
-        <button
-          type="button"
-          className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:bg-gray-50"
-        >
-        </button>
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2">
+
+          {/* Export CSV */}
+          <button
+            type="button"
+            onClick={handleExport}
+            className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-600 transition-colors hover:bg-gray-50"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Export CSV
+          </button>
+        </div>
       </div>
 
       {/* Table Content */}
@@ -125,8 +148,8 @@ export default function InboundTable() {
                 onClick={() => setPage(page)}
                 aria-current={currentPage === page ? 'page' : undefined}
                 className={`flex h-7 w-7 items-center justify-center rounded-lg text-[11px] font-bold transition-colors ${currentPage === page
-                    ? 'bg-anteraja-primary text-white shadow-sm'
-                    : 'bg-white text-gray-600 hover:bg-gray-50'
+                  ? 'bg-anteraja-primary text-white shadow-sm'
+                  : 'bg-white text-gray-600 hover:bg-gray-50'
                   }`}
               >
                 {page}

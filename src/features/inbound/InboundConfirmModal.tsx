@@ -1,9 +1,14 @@
+import { useState } from 'react';
 import { useInboundStore } from '../../store/useInboundStore';
 import { useHubStore } from '../../store/useHubStore';
+import api from '../../services/api';
+import toast from 'react-hot-toast';
 
 export default function InboundConfirmModal() {
-  const { confirmingManifest, closeConfirmModal, acknowledgeManifest } = useInboundStore();
+  const { confirmingManifest, closeConfirmModal, updateManifestStatus } = useInboundStore();
   const { hubCapacity } = useHubStore();
+  
+  const [error] = useState<string | null>(null);
 
   if (!confirmingManifest) return null;
 
@@ -13,10 +18,53 @@ export default function InboundConfirmModal() {
   const projectedLoad = currentLoad + incoming;
   const isOverload = projectedLoad > maxLoad;
 
-  const handleConfirm = () => {
-    if (!isOverload) {
-      acknowledgeManifest(confirmingManifest.manifest_code, incoming);
-      closeConfirmModal();
+  const handleConfirm = async () => {
+    if (isOverload) return;
+
+    const manifestCode = confirmingManifest.manifest_code;
+
+    // 1. Tutup modal DULU agar tidak terasa freeze — UI belum berubah
+    closeConfirmModal();
+    
+    // 2. API jalan di background dengan toast progress
+    const toastId = toast.loading(
+      `Memproses penerimaan ${manifestCode}...`,
+      { duration: Infinity }
+    );
+
+    try {
+      const { data } = await api.post(`/inbound/manifests/${manifestCode}/acknowledge`);
+      
+      if (data.success) {
+        // 3. SETELAH server konfirmasi berhasil, baru update UI
+        updateManifestStatus(manifestCode, 'SUDAH_DITERIMA');
+        
+        toast.success(
+          `✅ Manifest ${manifestCode} berhasil diterima! Paket telah ditambahkan ke hub.`,
+          {
+            id: toastId,
+            duration: 5000,
+            style: {
+              minWidth: '320px',
+              fontWeight: 600,
+            },
+          }
+        );
+      }
+    } catch (err: any) {
+      // 4. Gagal — UI tidak perlu di-revert karena belum diubah sama sekali
+      const errMsg = err.response?.data?.message || 'Gagal mengonfirmasi manifest. Silakan coba lagi.';
+      toast.error(
+        `❌ ${errMsg}`,
+        {
+          id: toastId,
+          duration: 7000,
+          style: {
+            minWidth: '320px',
+            fontWeight: 600,
+          },
+        }
+      );
     }
   };
 
@@ -65,7 +113,19 @@ export default function InboundConfirmModal() {
             </div>
           </div>
 
-          {isOverload && (
+          {error && (
+            <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 flex gap-3 text-red-700">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+              <div className="text-sm">
+                <p className="font-bold">Gagal Mengonfirmasi</p>
+                <p className="mt-1 text-red-600/80">{error}</p>
+              </div>
+            </div>
+          )}
+
+          {isOverload && !error && (
             <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 flex gap-3 text-red-700">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />

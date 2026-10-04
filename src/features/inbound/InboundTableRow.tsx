@@ -1,20 +1,77 @@
+import { useState, useEffect, useCallback } from 'react';
 import type { InboundManifest } from '../../types/hub';
 import { useInboundStore } from '../../store/useInboundStore';
-import { useHubStore } from '../../store/useHubStore';
 import { useNavigate } from 'react-router-dom';
+import api from '../../services/api';
 
 interface Props {
   manifest: InboundManifest;
 }
 
+// ─── Helper: normalise eta_timestamp to ms epoch ─────────────────────────────
+const toEpochMs = (eta: string | number): number => {
+  if (typeof eta === 'number') return eta;
+  // ISO string from backend → parse to ms
+  return new Date(eta).getTime();
+};
+
+// ─── Helper: format countdown ─────────────────────────────────────────────────
+const formatCountdown = (diffMs: number): string => {
+  if (diffMs <= 0) return 'Sudah melewati ETA';
+  const totalMins = Math.ceil(diffMs / 60000);
+  if (totalMins < 1) return 'Kurang dari 1 menit';
+  if (totalMins < 60) return `Tiba dalam ${totalMins} menit`;
+  const hours = Math.floor(totalMins / 60);
+  const mins = totalMins % 60;
+  return mins > 0 ? `Tiba dalam ${hours} jam ${mins} menit` : `Tiba dalam ${hours} jam`;
+};
+
+
 export default function InboundTableRow({ manifest }: Props) {
-  const { openConfirmModal } = useInboundStore();
-  const { fastForwardManifest } = useHubStore();
+  const { openConfirmModal, updateManifestStatus, updateManifestEta } = useInboundStore();
   const navigate = useNavigate();
 
-  const isWaiting = manifest.status === 'MENUNGGU_KONFIRMASI';
-  const isAccepted = manifest.status === 'SUDAH_DITERIMA';
-  const isEarlyArrival = isWaiting && manifest.eta_timestamp > Date.now();
+  // Tick every 30s to re-evaluate ETA comparison (gives realtime feel without heavy polling)
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    if (manifest.status === 'SUDAH_DITERIMA') return;
+    const interval = setInterval(() => setTick((t) => t + 1), 30_000);
+    return () => clearInterval(interval);
+  }, [manifest.status]);
+
+  // ─── Derived status ───────────────────────────────────────────────────────
+  const etaMs = toEpochMs(manifest.eta_timestamp);
+  const now = Date.now();
+  const diffMs = etaMs - now;
+
+  type EffectiveStatus = 'IN_TRANSIT' | 'ARRIVED' | 'ACCEPTED';
+  let effectiveStatus: EffectiveStatus;
+  if (manifest.status === 'SUDAH_DITERIMA') {
+    effectiveStatus = 'ACCEPTED';
+  } else if (now >= etaMs) {
+    // Time has passed ETA → treat as arrived, show "Terima & Konfirmasi"
+    effectiveStatus = 'ARRIVED';
+  } else {
+    // Still before ETA → still in transit
+    effectiveStatus = 'IN_TRANSIT';
+  }
+
+  // ─── Early Arrival API call ───────────────────────────────────────────────
+  const [isArriving, setIsArriving] = useState(false);
+  const handleEarlyArrival = useCallback(async () => {
+    if (isArriving) return;
+    try {
+      setIsArriving(true);
+      await api.patch(`/inbound/manifests/${manifest.manifest_code}/arrive`);
+      // Optimistic local update: status → MENUNGGU_KONFIRMASI, eta → now (past)
+      updateManifestStatus(manifest.manifest_code, 'MENUNGGU_KONFIRMASI');
+      updateManifestEta(manifest.manifest_code, Date.now() - 1000);
+    } catch (err) {
+      console.error('Failed to mark early arrival:', err);
+    } finally {
+      setIsArriving(false);
+    }
+  }, [manifest.manifest_code, isArriving, updateManifestStatus, updateManifestEta]);
 
   return (
     <tr className="border-b border-gray-50 bg-white hover:bg-gray-50/50">
@@ -52,11 +109,41 @@ export default function InboundTableRow({ manifest }: Props) {
 
       {/* Waktu Kedatangan (ETA) */}
       <td className="px-3 py-4">
-        <p className="text-sm font-semibold text-gray-900">{manifest.eta}</p>
-        <p className="mt-0.5 text-xs text-gray-500">
-          {new Date(manifest.eta_timestamp).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
-        </p>
+        {effectiveStatus === 'IN_TRANSIT' ? (
+          /* Masih dalam perjalanan: tampilkan countdown */
+          <>
+            <p className="text-sm font-semibold text-blue-600">{formatCountdown(diffMs)}</p>
+            <p className="mt-0.5 text-xs text-gray-400">
+              Est.{' '}
+              {new Date(etaMs).toLocaleTimeString('id-ID', {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}{' '}
+              WIB
+            </p>
+          </>
+        ) : (
+          /* ARRIVED atau ACCEPTED: tampilkan tanggal + jam tiba aktual */
+          <>
+            <p className="text-sm font-semibold text-gray-900">
+              {new Date(etaMs).toLocaleDateString('id-ID', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+              })}
+            </p>
+            <p className="mt-0.5 text-xs text-gray-400">
+              Pukul{' '}
+              {new Date(etaMs).toLocaleTimeString('id-ID', {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}{' '}
+              WIB
+            </p>
+          </>
+        )}
       </td>
+
 
       {/* Jumlah Paket */}
       <td className="px-3 py-4 text-center">
@@ -65,18 +152,20 @@ export default function InboundTableRow({ manifest }: Props) {
 
       {/* Status Pengiriman */}
       <td className="px-3 py-4 text-center">
-        {isEarlyArrival && (
-          <span className="inline-flex items-center rounded-full border border-blue-200 bg-white px-3 py-1 text-xs font-semibold text-blue-600">
-            In-Transit (OTW)
+        {effectiveStatus === 'IN_TRANSIT' && (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600">
+            <span className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse" aria-hidden="true" />
+            Dalam Perjalanan
           </span>
         )}
-        {isWaiting && !isEarlyArrival && (
-          <span className="inline-flex items-center rounded-full border border-amber-200 bg-white px-3 py-1 text-xs font-semibold text-amber-600">
+        {effectiveStatus === 'ARRIVED' && (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-600">
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" aria-hidden="true" />
             Tiba di Hub
           </span>
         )}
-        {isAccepted && (
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-white px-3 py-1 text-xs font-semibold text-emerald-600">
+        {effectiveStatus === 'ACCEPTED' && (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-3 w-3"
@@ -98,6 +187,7 @@ export default function InboundTableRow({ manifest }: Props) {
       {/* Aksi */}
       <td className="py-4 pl-3 pr-6 text-right">
         <div className="flex items-center justify-end gap-2">
+          {/* Detail button — always visible */}
           <button
             type="button"
             onClick={() => navigate(`/shipments/${manifest.manifest_code}`)}
@@ -109,21 +199,31 @@ export default function InboundTableRow({ manifest }: Props) {
             </svg>
             Detail
           </button>
-          
-          {isEarlyArrival && (
+
+          {/* Tiba Lebih Cepat — only when IN_TRANSIT */}
+          {effectiveStatus === 'IN_TRANSIT' && (
             <button
               type="button"
-              onClick={() => fastForwardManifest(manifest.manifest_code)}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-blue-50 px-4 py-2 text-xs font-semibold text-blue-600 shadow-sm ring-1 ring-inset ring-blue-200 transition-colors hover:bg-blue-100 active:scale-[0.97]"
+              onClick={handleEarlyArrival}
+              disabled={isArriving}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-blue-50 px-4 py-2 text-xs font-semibold text-blue-600 shadow-sm ring-1 ring-inset ring-blue-200 transition-colors hover:bg-blue-100 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-              </svg>
-              Tiba Lebih Awal
+              {isArriving ? (
+                <svg className="h-3.5 w-3.5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                </svg>
+              )}
+              {isArriving ? 'Memproses...' : 'Tiba Lebih Cepat'}
             </button>
           )}
 
-          {isWaiting && !isEarlyArrival && (
+          {/* Terima & Konfirmasi — when ARRIVED (now >= eta) */}
+          {effectiveStatus === 'ARRIVED' && (
             <button
               type="button"
               onClick={() => openConfirmModal(manifest)}
@@ -145,9 +245,11 @@ export default function InboundTableRow({ manifest }: Props) {
               Terima &amp; Konfirmasi
             </button>
           )}
-          {isAccepted && (
+
+          {/* Diterima label — when ACCEPTED */}
+          {effectiveStatus === 'ACCEPTED' && (
             <span className="inline-flex rounded-xl bg-gray-100 px-4 py-2 text-xs font-semibold text-gray-400">
-              Diterima
+              Diterima oleh Admin
             </span>
           )}
         </div>
