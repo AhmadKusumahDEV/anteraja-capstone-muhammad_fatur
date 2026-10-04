@@ -54,9 +54,6 @@ class BroadcastInboundSignalJob implements ShouldQueue
      */
     public function handle(SseSignalService $sseService)
     {
-        // Hitung selisih waktu sekarang dengan eta_timestamp
-        $etaMinutes = (int) ceil(now()->diffInMinutes($this->manifest->eta_timestamp));
-        
         // 1. 🔔 SSE: Kirim sinyal INBOUND_ARRIVAL_SIGNAL ke hub tujuan
         $sseService->broadcast(
             hubId: $this->destinationHub->id,
@@ -65,10 +62,10 @@ class BroadcastInboundSignalJob implements ShouldQueue
                 'hub_id'           => $this->destinationHub->id,
                 'manifest_code'    => $this->manifest->manifest_code,
                 'new_trucks_count' => 1,
-                'message'          => "Truk Baru dalam perjalanan. ETA: {$etaMinutes} menit lagi.",
+                'message'          => 'Truk Baru Tiba di Hub. Segera periksa daftar manifest.',
             ],
-            title: 'Truk Menuju Hub',
-            message: "Manifest {$this->manifest->manifest_code} dengan {$this->totalPackages} paket akan tiba di hub Anda dalam perkiraan {$etaMinutes} menit.",
+            title: 'Manifest Baru Masuk',
+            message: "Manifest {$this->manifest->manifest_code} dengan {$this->totalPackages} paket sedang menuju hub Anda.",
             type: NotificationTypeEnum::INFO,
         );
 

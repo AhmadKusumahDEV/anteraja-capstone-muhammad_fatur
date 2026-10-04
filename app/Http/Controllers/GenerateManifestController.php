@@ -32,10 +32,14 @@ class GenerateManifestController extends Controller
 
             $destination_hub = Hub::find($request->destination_hub_id);
             
-            /** @var Hub|null $origin_hub */
-            $origin_hub = Hub::where('id', '!=', $request->destination_hub_id)
-                ->inRandomOrder()
-                ->first();
+            if ($request->filled('origin_hub_id')) {
+                $origin_hub = Hub::find($request->origin_hub_id);
+            } else {
+                /** @var Hub|null $origin_hub */
+                $origin_hub = Hub::where('id', '!=', $request->destination_hub_id)
+                    ->inRandomOrder()
+                    ->first();
+            }
 
             // Fallback jika hanya ada 1 hub di database
             $origin_hub_id   = $origin_hub ? $origin_hub->id       : 'HUB-DEFAULT-01';
@@ -110,6 +114,9 @@ class GenerateManifestController extends Controller
             }
 
             DB::commit();
+
+            // 🔔 SSE: Delegasikan tugas ke Background Job
+            \App\Jobs\BroadcastInboundSignalJob::dispatch($manifest, $destination_hub, $total_packages);
 
             // Format dan return response
             return response()->json([
