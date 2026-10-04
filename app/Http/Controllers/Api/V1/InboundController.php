@@ -44,7 +44,7 @@ class InboundController extends Controller
                 'vehicle_type'    => $manifest->vehicle_type,
                 'status'          => $manifest->status instanceof \BackedEnum ? $manifest->status->value : $manifest->status,
                 'total_packages'  => $manifest->packages_count ?? 0,
-                'eta_timestamp'   => $manifest->eta_timestamp?->format('Y-m-d H:i:s'),
+                'eta_timestamp'   => $manifest->eta_timestamp?->toIso8601String(),
                 'created_at'      => $manifest->created_at?->format('Y-m-d H:i:s'),
             ];
         });
@@ -52,6 +52,46 @@ class InboundController extends Controller
         return response()->json([
             'success' => true,
             'data'    => $items,
+        ]);
+    }
+
+    /**
+     * PATCH /api/v1/inbound/manifests/{manifest_code}/arrive
+     * 
+     * Tombol "Tiba Lebih Cepat". Digunakan saat truk sampai di gerbang lebih awal dari ETA.
+     */
+    public function arrive(string $manifest_code): JsonResponse
+    {
+        $user = auth('api')->user();
+        if (!$user || !$user->hub_id) {
+            return response()->json(['success' => false, 'message' => 'Admin tidak memiliki akses ke Hub manapun.'], 403);
+        }
+
+        $manifest = Manifest::where('manifest_code', $manifest_code)
+            ->where('destination_hub_id', $user->hub_id)
+            ->first();
+
+        if (!$manifest) {
+            return response()->json(['success' => false, 'message' => 'Manifest tidak ditemukan atau bukan tujuan hub Anda.'], 404);
+        }
+
+        $currentStatus = $manifest->status instanceof \BackedEnum ? $manifest->status->value : $manifest->status;
+        if ($currentStatus !== 'MENUNGGU_KEDATANGAN') {
+            return response()->json(['success' => false, 'message' => 'Status manifest saat ini bukan MENUNGGU_KEDATANGAN.'], 400);
+        }
+
+        $manifest->status = ManifestStatusEnum::MENUNGGU_KONFIRMASI;
+        $manifest->eta_timestamp = now(); // Set kedatangan realita menjadi saat ini
+        $manifest->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Armada dikonfirmasi tiba lebih awal.',
+            'data'    => [
+                'manifest_code' => $manifest->manifest_code,
+                'status'        => 'MENUNGGU_KONFIRMASI',
+                'eta_timestamp' => $manifest->eta_timestamp->toIso8601String(),
+            ],
         ]);
     }
 
@@ -119,8 +159,29 @@ class InboundController extends Controller
                         ]);
                 }
             }
-
             DB::commit();
+
+            // Hitung kapasitas untuk SSE payload
+            $currentLoad = DB::table('packages')->where('current_hub_id', $user->hub_id)->where('status', 'IN_HUB')->count();
+            $maxCapacity = 200; // Hardcoded default, jika tidak ada field di hubs table
+            $percentage = min(100, round(($currentLoad / $maxCapacity) * 100, 2));
+            $statusZone = $percentage >= 90 ? 'WARNING' : 'SAFE';
+
+            app(\App\Services\SseSignalService::class)->broadcast(
+                hubId: $user->hub_id,
+                event: \App\Enums\SseEventEnum::CAPACITY_LOAD_ALERT,
+                data: [
+                    'hub_id'              => $user->hub_id,
+                    'current_load'        => $currentLoad,
+                    'max_capacity'        => $maxCapacity,
+                    'capacity_percentage' => $percentage,
+                    'status_zone'         => $statusZone,
+                    'message'             => "Kapasitas Hub mencapai {$percentage}%.",
+                ],
+                title: 'Pembaruan Kapasitas Hub',
+                message: "Terdapat penambahan beban karena manifest {$manifest_code} telah di-terima. Beban saat ini: {$percentage}%",
+                type: $percentage >= 90 ? \App\Enums\NotificationTypeEnum::WARNING : \App\Enums\NotificationTypeEnum::INFO,
+            );
 
             return response()->json([
                 'success' => true,
