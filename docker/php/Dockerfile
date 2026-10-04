@@ -1,26 +1,29 @@
-FROM php:8.3-fpm
+# syntax=docker/dockerfile:1
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    zip \
-    unzip \
-    libpq-dev
+# ---------- Stage 1: vendor ----------
+FROM composer:2 AS vendor
+WORKDIR /app
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist \
+    --no-interaction --ignore-platform-reqs
+COPY . .
+RUN composer dump-autoload --optimize --no-dev --no-scripts --ignore-platform-reqs
 
-# Clear cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+# ---------- Stage 2: base ----------
+FROM php:8.3-fpm AS base
 
-# Install PHP extensions (including pdo_pgsql for PostgreSQL)
-RUN docker-php-ext-install pdo_mysql pdo_pgsql mbstring exif pcntl bcmath gd
+# Install ekstensi PHP (termasuk Redis)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpng-dev libonig-dev libxml2-dev libpq-dev libfcgi-bin \
+    && docker-php-ext-install pdo_pgsql mbstring exif pcntl bcmath gd opcache \
+    && pecl install redis && docker-php-ext-enable redis \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Get latest Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/10-opcache.ini
+COPY docker/php/php-fpm.conf /usr/local/etc/php-fpm.d/zz-app.conf
+COPY docker/php/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Set working directory
 WORKDIR /var/www/html
 ENTRYPOINT ["entrypoint.sh"]
 CMD ["php-fpm"]
