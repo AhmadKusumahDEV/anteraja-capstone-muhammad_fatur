@@ -17,17 +17,18 @@ interface RandomUserResponse {
  */
 export function useAdminProfile() {
   const { adminProfile, setAdminProfile } = useAdminContext();
-  
+
   // Menggunakan custom hook useFetchData untuk memanggil API
   // Parameter ?seed=adminbudi digunakan agar foto yang dihasilkan konsisten (tidak berubah-ubah setiap refresh)
   const { data, isLoading, isError, error } = useFetchData<RandomUserResponse>('https://randomuser.me/api/?seed=adminbudi&inc=name,picture');
 
   useEffect(() => {
-    // Memperbarui Context API global store jika data berhasil di-*fetch*
-    if (data && data.results.length > 0 && !adminProfile) {
+    // Memperbarui Context API global store jika data foto berhasil di-*fetch*
+    // Kita hanya update pictureUrl, biarkan name dan hub_id dari JWT
+    if (data && data.results.length > 0 && adminProfile && !adminProfile.pictureUrl) {
       const user = data.results[0];
       setAdminProfile({
-        name: `${user.name.first} ${user.name.last}`,
+        ...adminProfile,
         pictureUrl: user.picture.medium,
       });
     }
