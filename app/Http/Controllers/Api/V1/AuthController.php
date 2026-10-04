@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
@@ -70,27 +71,71 @@ class AuthController extends Controller
     }
 
     /**
-     * Refresh access token.
+     * Refresh access token menggunakan refresh_token.
+     * Dikirim melalui Body: { "refresh_token": "..." }
      */
-    public function refresh(): JsonResponse
+    public function refresh(Request $request): JsonResponse
     {
+        $refreshToken = $request->input('refresh_token');
+        
+        if (!$refreshToken) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Refresh token tidak disertakan dalam request body.'
+            ], 400);
+        }
+
         try {
+            // Set token yang akan diparse menjadi refresh token dari input
+            JWTAuth::setToken($refreshToken);
+            
+            // Ambil payload untuk memastikan ini benar-benar refresh token
+            $payload = JWTAuth::getPayload();
+            if ($payload->get('type') !== 'refresh') {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Token yang diberikan bukan refresh token.'
+                ], 401);
+            }
+
+            // Ambil user dari token
+            $user = JWTAuth::authenticate();
+            if (!$user) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'User tidak ditemukan.'
+                ], 404);
+            }
+
+            // Invalidate the old refresh token (Token Rotation - sangat disarankan)
+            JWTAuth::invalidate();
+
             /** @var \Tymon\JWTAuth\JWTGuard $guard */
             $guard = auth('api');
-            $newToken = $guard->refresh();
+
+            // Generate Access Token baru
+            $newAccessToken = $guard->login($user);
+
+            // Generate Refresh Token baru
+            $newRefreshToken = $guard->claims(['type' => 'refresh'])
+                ->setTTL(config('jwt.refresh_ttl', 10080))
+                ->login($user);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Token berhasil diperbarui.',
                 'data'    => [
-                    'access_token' => $newToken,
-                    'token_type'   => 'Bearer',
-                    'expires_in'   => config('jwt.ttl') * 60,
+                    'access_token'  => $newAccessToken,
+                    'refresh_token' => $newRefreshToken,
+                    'token_type'    => 'Bearer',
+                    'expires_in'    => config('jwt.ttl') * 60,
                 ],
             ]);
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Tidak dapat memperbarui token: ' . $e->getMessage(),
+                'message' => 'Refresh token tidak valid atau sudah kedaluwarsa.',
             ], 401);
         }
     }
