@@ -163,24 +163,53 @@ class InboundController extends Controller
 
             // Hitung kapasitas untuk SSE payload
             $currentLoad = DB::table('packages')->where('current_hub_id', $user->hub_id)->where('status', 'IN_HUB')->count();
-            $maxCapacity = 200; // Hardcoded default, jika tidak ada field di hubs table
+            // Ambil max_capacity asli dari tabel hubs
+            $hub = \App\Models\Hub::find($user->hub_id);
+            $maxCapacity = $hub ? $hub->max_capacity : 200; 
+            
             $percentage = min(100, round(($currentLoad / $maxCapacity) * 100, 2));
-            $statusZone = $percentage >= 90 ? 'WARNING' : 'SAFE';
+
+            // Tentukan level kapasitas berdasarkan percentage
+            $statusZone = 'SAFE';
+            $notifType  = \App\Enums\NotificationTypeEnum::INFO;
+            $playSound  = null;
+            $notifTitle = 'Kapasitas Hub Diperbarui';
+
+            if ($percentage >= 90) {
+                $statusZone = 'CRITICAL';
+                $notifType  = \App\Enums\NotificationTypeEnum::CRITICAL;
+                $playSound  = 'siren_alert.mp3';
+                $notifTitle = '🚨 CRITICAL WARNING!';
+            } elseif ($percentage >= 75) {
+                $statusZone = 'HIGH';
+                $notifType  = \App\Enums\NotificationTypeEnum::WARNING;
+                $notifTitle = '⚠️ Hub Hampir Penuh';
+            } elseif ($percentage >= 50) {
+                $statusZone = 'MODERATE';
+            }
+
+            // Selalu kirim untuk meng-update widget UI Frontend
+            $eventData = [
+                'hub_id'              => $user->hub_id,
+                'current_load'        => $currentLoad,
+                'max_capacity'        => $maxCapacity,
+                'capacity_percentage' => $percentage,
+                'status_zone'         => $statusZone,
+                'message'             => "Kapasitas Hub mencapai {$percentage}%.",
+            ];
+
+            // Tambahkan flag play_sound HANYA jika kritis
+            if ($playSound) {
+                $eventData['play_sound'] = $playSound;
+            }
 
             app(\App\Services\SseSignalService::class)->broadcast(
                 hubId: $user->hub_id,
                 event: \App\Enums\SseEventEnum::CAPACITY_LOAD_ALERT,
-                data: [
-                    'hub_id'              => $user->hub_id,
-                    'current_load'        => $currentLoad,
-                    'max_capacity'        => $maxCapacity,
-                    'capacity_percentage' => $percentage,
-                    'status_zone'         => $statusZone,
-                    'message'             => "Kapasitas Hub mencapai {$percentage}%.",
-                ],
-                title: 'Pembaruan Kapasitas Hub',
-                message: "Terdapat penambahan beban karena manifest {$manifest_code} telah di-terima. Beban saat ini: {$percentage}%",
-                type: $percentage >= 90 ? \App\Enums\NotificationTypeEnum::WARNING : \App\Enums\NotificationTypeEnum::INFO,
+                data: $eventData,
+                title: $notifTitle,
+                message: "Beban hub saat ini: {$percentage}% (Status: {$statusZone})",
+                type: $notifType,
             );
 
             return response()->json([
