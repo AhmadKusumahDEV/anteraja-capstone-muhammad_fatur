@@ -1,0 +1,39 @@
+# Dokumentasi Struktur Database & ERD - Anteraja Hub Capstone
+
+Berikut adalah penjelasan dan dokumentasi terkait perancangan struktur database operasional Anteraja Hub berdasarkan prinsip *Domain-Driven Design* (DDD) yang telah dirampungkan pada branch `6-db`.
+
+---
+
+## 1. Penjelasan Skema DDL (.sql)
+
+Script Data Definition Language (DDL) berdialek **PostgreSQL** telah dibuat dan disimpan dalam file `docs/ddl_schema.sql`. Script ini mendefinisikan tipe data khusus (seperti `ENUM`), pembuatan 7 tabel utama, dan relasi *Foreign Key*.
+
+**Poin-Poin Penting dari Struktur Tabel:**
+- **Pemisahan Domain Pengguna**: Tabel `users` (untuk admin dashboard) dan `couriers` (armada operasional) dipisah agar struktur otorisasi web tidak bercampur dengan state operasional logistik.
+- **Tabel `hubs` sebagai Core Center**: Berperan sebagai data master yang menyimpan informasi kapasitas (`max_capacity`), yang menjadi poros relasi bagi kurir maupun paket yang sedang berada di tempat tersebut.
+- **Efisiensi Status SLA**: Tabel `packages` didesain untuk tidak memerlukan kolom `is_breached`. SLA dihitung secara *on-the-fly* menggunakan kombinasi `sla_deadline` dan `CURRENT_TIMESTAMP`, menjaga performa server tanpa memerlukan *cron-job* untuk update jutaan baris data setiap menitnya.
+- **Otomatisasi Timestamp**: Status perpindahan barang atau manifest dicatat cukup dengan mekanisme bawaan framework melalui pembaruan pada kolom `updated_at`.
+
+---
+
+## 2. Entity Relationship Diagram (ERD)
+
+Desain konseptual relasi antar-entitas telah direpresentasikan ke dalam format DBML (`docs/dbml_schema.dbml`) dan MermaidJS (`docs/ERD.md`). 
+
+**Penjelasan Relasi ERD:**
+- **One-to-Many**: Hub menaungi banyak kurir (`hubs` -> `couriers`) dan memiliki banyak staf admin (`hubs` -> `users`). Manifes juga diprakarsai oleh satu operator spesifik (`users` -> `manifests`).
+- **Many-to-Many**: Proses muat barang diselesaikan melalui tabel relasi/pivot `manifest_packages`. Hal ini memungkinkan satu manifes logistik (feeder/truk) menampung banyak paket, serta mengakomodasi skenario transit multi-hop.
+- **Sistem Serah Terima (Handover)**: Tabel `courier_dispatches` bertindak sebagai kontrol delegasi yang mengikat `courier_id` dengan `manifest_code`, dilengkapi sistem kedaluwarsa penerimaan tugas (`acceptance_timeout_minutes`).
+
+---
+
+## 3. Potongan Dokumentasi & Kesesuaian dengan FRD
+
+Skema database yang dibuat merepresentasikan alur logika bisnis yang tertuang langsung pada spesifikasi dokumen FRD di dalam branch ini:
+
+* **SLA Calculation & Queueing (FRD-F03)**:
+  Kueri untuk Dynamic SLA Queue akan secara dinamis menyortir antrean paket berstatus `'IN_HUB'` berdasarkan kolom `is_priority` secara descending (memrioritaskan intervensi manual) lalu diikuti pengurutan `sla_deadline` secara ascending (semakin mendekati limit waktu, semakin atas posisinya).
+* **Outbound Dispatch & Handover (FRD-F04)**:
+  Status ketersediaan armada kurir dikendalikan melalui field Enum `status` (`'STANDBY', 'ON_DUTY'`) di tabel `couriers`. Ketika proses *Quick Release Dispatch* dieksekusi, sistem membuat entitas relasi di tabel `courier_dispatches` untuk memvalidasi *Action Response* dari kurir di lapangan.
+* **Simplifikasi Rute MVP**:
+  Berdasarkan kesepakatan desain arsitektur pada branch ini, informasi arah tujuan paket untuk pengelompokan batch diringkas menggunakan atribut string `destination_area` pada tabel `packages`. Keputusan teknis ini mengurangi kompleksitas Foreign Key antar provinsi/kota besar tanpa menghilangkan konteks bisnis utama dari aliran *Outbound Dispatch*.
