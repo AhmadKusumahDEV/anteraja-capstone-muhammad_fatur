@@ -1,0 +1,22 @@
+# =============================================================================
+#  Override untuk Local Development (Membaca file di laptop secara real-time)
+# =============================================================================
+# File ini otomatis dibaca oleh `docker compose up` di laptopmu.
+# Fungsi file ini adalah MENIMPA (override) pengaturan di docker-compose.yml
+# menjadi mode "Development" tanpa harus mengedit file utamanya.
+
+services:
+  migrate:
+    build:
+      target: dev
+    volumes:
+      # Menyambungkan folder laptop ke dalam container agar bisa real-time
+      - ./:/var/www/html
+
+  app:
+    build:
+      target: dev
+    volumes:
+      # Menyambungkan folder laptop ke dalam container agar bisa real-time
+      - ./:/var/www/html
+ 

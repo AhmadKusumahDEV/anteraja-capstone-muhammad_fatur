@@ -1,0 +1,5 @@
+sudo npm install -g @dbml/cli @softwaretechnik/dbml-renderer
+
+sql2dbml ddl_schema.sql --postgres > struktur.dbml
+
+dbml-renderer -i struktur.dbml -o erdku.svg

@@ -10,7 +10,14 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasFactory, Notifiable;
+
+    /**
+     * Primary key sesuai DDL capstone (VARCHAR string, bukan auto-increment).
+     */
+    protected $primaryKey  = 'id';
+    public    $incrementing = false;
+    protected $keyType     = 'string';
 
     /**
      * Primary key sesuai DDL capstone (VARCHAR string, bukan auto-increment).

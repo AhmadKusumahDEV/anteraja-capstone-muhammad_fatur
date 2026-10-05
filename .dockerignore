@@ -1,0 +1,24 @@
+/vendor/
+/node_modules/
+npm-debug.log
+yarn-error.log
+
+# Storage & Cache
+/storage/app/public/
+/storage/framework/cache/data/
+/storage/framework/sessions/
+/storage/framework/views/
+/storage/logs/
+/bootstrap/cache/*.php
+
+# Environment
+.env
+.env.backup
+
+# Git
+.git
+
+# IDE / OS
+.idea
+.vscode
+.DS_Store

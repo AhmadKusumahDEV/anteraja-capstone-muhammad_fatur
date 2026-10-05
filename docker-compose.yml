@@ -22,6 +22,7 @@ services:
       - backend-net
 
   app:
+    image: anteraja-php:${IMAGE_TAG:-latest}
     build:
       context: .
       dockerfile: docker/php/Dockerfile
@@ -44,9 +45,63 @@ services:
         condition: service_completed_successfully
       postgres_db_anteraja:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "SCRIPT_NAME=/ping SCRIPT_FILENAME=/ping REQUEST_METHOD=GET cgi-fcgi -bind -connect localhost:9000 | grep -q pong"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 20s
+
+  # 4.5. Queue Worker (Asynchronous Background Job)
+  queue:
+    image: anteraja-php:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      target: prod
+    container_name: anteraja_queue
+    restart: unless-stopped
+    user: www-data
+    working_dir: /var/www/html
+    volumes:
+      - storage_data:/var/www/html/storage
+    env_file: .env
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres_db_anteraja
+      DB_PORT: "5432"
+      REDIS_HOST: redis_anteraja
     networks:
       - backend-net
+    command: ["php", "artisan", "queue:work", "redis", "--sleep=3", "--tries=3"]
+    depends_on:
+      postgres_db_anteraja:
+        condition: service_healthy
+      redis_anteraja:
+        condition: service_healthy
 
+  # 4.6. Scheduler (Cron Job)
+  scheduler:
+    image: anteraja-php:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      target: prod
+    container_name: anteraja_scheduler
+    restart: unless-stopped
+    user: www-data
+    working_dir: /var/www/html
+    volumes:
+      - storage_data:/var/www/html/storage
+    env_file: .env
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres_db_anteraja
+      DB_PORT: "5432"
+
+  # 5. Web Server (Nginx)
   web:
     image: nginx:alpine
     container_name: anteraja_nginx
@@ -54,12 +109,13 @@ services:
     ports:
       - "8000:80"
     volumes:
-      - ./:/var/www/html
-      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
-    depends_on:
-      - app
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./public:/var/www/html/public:ro
     networks:
       - backend-net
+    depends_on:
+      app:
+        condition: service_healthy
 
   postgres_db_anteraja:
     image: postgres:15-alpine
