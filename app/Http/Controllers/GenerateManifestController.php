@@ -118,6 +118,8 @@ class GenerateManifestController extends Controller
             // 🔔 SSE: Delegasikan tugas ke Background Job
             \App\Jobs\BroadcastInboundSignalJob::dispatch($manifest, $destination_hub, $total_packages);
 
+            // \App\Jobs\VehicleSimulationJob::dispatch($manifest->manifest_code);
+
             // Format dan return response
             return response()->json([
                 'success' => true,

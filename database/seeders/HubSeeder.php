@@ -39,6 +39,8 @@ class HubSeeder extends Seeder
                 'name' => 'Surabaya Transit Hub',
                 'region_name' => 'Surabaya',
                 'location_tag' => 'Surabaya',
+                'latitude' => -7.250445,
+                'longitude' => 112.768845,
                 'max_capacity' => 200,
                 'timezone' => 'WIB (UTC+7)',
                 'created_at' => now(),
@@ -49,11 +51,13 @@ class HubSeeder extends Seeder
                 'name' => 'Medan Utama Hub',
                 'region_name' => 'Medan',
                 'location_tag' => 'Medan',
+                'latitude' => 3.595196,
+                'longitude' => 98.672223,
                 'max_capacity' => 180,
                 'timezone' => 'WIB (UTC+7)',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]
-        ], ['id'], ['name', 'region_name', 'location_tag', 'max_capacity', 'timezone', 'updated_at']);
+        ], ['id'], ['name', 'region_name', 'location_tag', 'latitude', 'longitude', 'max_capacity', 'timezone', 'updated_at']);
     }
 }
