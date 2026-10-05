@@ -74,4 +74,11 @@ Route::prefix('v1')->group(function () {
         Route::patch('/notifications/read-all', [\App\Http\Controllers\Api\V1\HubNotificationController::class, 'markAllAsRead']);
         Route::patch('/notifications/{id}/read', [\App\Http\Controllers\Api\V1\HubNotificationController::class, 'markAsRead']);
     });
+
+    // ── Day 12 Assignment: Shipment Request (Session Based) ────
+    Route::middleware([\Illuminate\Session\Middleware\StartSession::class])->group(function () {
+        Route::get('/shipment-requests', [\App\Http\Controllers\Api\V1\ShipmentRequestController::class, 'index']);
+        Route::post('/shipment-requests', [\App\Http\Controllers\Api\V1\ShipmentRequestController::class, 'store']);
+        Route::delete('/shipment-requests', [\App\Http\Controllers\Api\V1\ShipmentRequestController::class, 'destroy']);
+    });
 });
