@@ -4,10 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Hub;
-use App\Models\Package;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
 
 class HubController extends Controller
 {
@@ -19,14 +16,9 @@ class HubController extends Controller
      */
     public function index(): JsonResponse
     {
-        // Cache hasil query Master Data Hub di Redis selama 24 jam (86400 detik).
-        // Ini mencegah database PostgreSQL dipanggil berulang kali untuk data yang jarang berubah.
-        $hubs = Cache::remember('master_data_hubs', 86400, function () {
-            return Hub::select('id', 'name', 'region_name', 'location_tag')
-                ->orderBy('name')
-                ->get()
-                ->toArray();
-        });
+        $hubs = Hub::select('id', 'name', 'region_name', 'location_tag')
+            ->orderBy('name')
+            ->get();
 
         return response()->json([
             'success' => true,

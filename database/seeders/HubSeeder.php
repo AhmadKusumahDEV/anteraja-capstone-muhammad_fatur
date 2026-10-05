@@ -58,6 +58,6 @@ class HubSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ]
-        ], ['id'], ['name', 'region_name', 'location_tag', 'latitude', 'longitude', 'max_capacity', 'timezone', 'updated_at']);
+        ], ['id'], ['name', 'region_name', 'location_tag', 'max_capacity', 'timezone', 'updated_at']);
     }
 }
