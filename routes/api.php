@@ -46,4 +46,11 @@ Route::prefix('v1')->group(function () {
         // [Endpoint 4] GET /api/v1/manifests/{manifestCode}
         Route::get('/manifests/{manifestCode}', [ManifestController::class, 'show']);
     });
+
+    // ── Day 12 Assignment: Shipment Request (Session Based) ────
+    Route::middleware([\Illuminate\Session\Middleware\StartSession::class])->group(function () {
+        Route::get('/shipment-requests', [\App\Http\Controllers\Api\V1\ShipmentRequestController::class, 'index']);
+        Route::post('/shipment-requests', [\App\Http\Controllers\Api\V1\ShipmentRequestController::class, 'store']);
+        Route::delete('/shipment-requests', [\App\Http\Controllers\Api\V1\ShipmentRequestController::class, 'destroy']);
+    });
 });
