@@ -94,7 +94,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         switch (payload.event) {
           case 'INBOUND_ARRIVAL_SIGNAL':
             set({ latestInbound: payload.data });
-            
+
             // "Invalidate Query" style: Refresh InboundTable automatically!
             import('./useInboundStore').then((m) => {
               if (m.useInboundStore.getState().fetchManifests) {
@@ -122,7 +122,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
           case 'CAPACITY_LOAD_ALERT':
             set({ capacityData: payload.data });
-            
+
             // Sync secara real-time ke HubStore agar HubCapacityCard langsung bereaksi (Zero Polling)
             import('./useHubStore').then((m) => {
               const currentCap = m.useHubStore.getState().hubCapacity;
@@ -133,6 +133,12 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
                 usage_percent: payload.data.capacity_percentage,
                 capacity_status: payload.data.status_zone,
               });
+            });
+
+            import('./useSlaQueueStore').then((m) => {
+              if (m.useSlaQueueStore.getState().fetchQueue) {
+                m.useSlaQueueStore.getState().fetchQueue();
+              }
             });
 
             get().addLocalNotification({
@@ -153,7 +159,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
           case 'PACKAGE_PRIORITY_UPDATED':
             useSlaQueueStore.getState().updatePackagePriorityLocally(
-              payload.data.tracking_id, 
+              payload.data.tracking_id,
               payload.data.is_priority
             );
             get().addLocalNotification({
