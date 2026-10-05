@@ -58,10 +58,7 @@ class GenerateManifestController extends Controller
             for ($i = 0; $i < $total_packages; $i++) {
                 // Pastikan tracking_id unik dengan kombinasi timestamp + random + index
                 $tracking_id  = 'TRK-' . time() . rand(100, 999) . str_pad($i, 3, '0', STR_PAD_LEFT);
-                // Pastikan tracking_id unik dengan kombinasi timestamp + random + index
-                $tracking_id  = 'TRK-' . time() . rand(100, 999) . str_pad($i, 3, '0', STR_PAD_LEFT);
                 $service_type = $serviceTypes[array_rand($serviceTypes)];
-                $is_priority  = $service_type === 'SAME_DAY';
                 $is_priority  = $service_type === 'SAME_DAY';
 
                 $packagesData[] = [
@@ -125,22 +122,16 @@ class GenerateManifestController extends Controller
                 'success' => true,
                 'message' => 'Manifest berhasil di-generate.',
                 'data'    => [
-                'data'    => [
                     'manifest_code'        => $manifest->manifest_code,
-                    'type'                 => $manifest->getRawOriginal('type') ?? 'INBOUND_FEEDER',
                     'type'                 => $manifest->getRawOriginal('type') ?? 'INBOUND_FEEDER',
                     'origin_hub_code'      => $origin_hub_id,
                     'origin_hub_name'      => $origin_hub_name,
                     'destination_hub_code' => $manifest->destination_hub_id,
                     'destination_hub_name' => $destination_hub?->name,
-                    'destination_hub_name' => $destination_hub?->name,
                     'vehicle_type'         => $manifest->vehicle_type,
-                    'status'               => $manifest->getRawOriginal('status') ?? 'MENUNGGU_KEDATANGAN',
                     'status'               => $manifest->getRawOriginal('status') ?? 'MENUNGGU_KEDATANGAN',
                     'eta_timestamp'        => $manifest->eta_timestamp->format('Y-m-d H:i:s'),
                     'total_packages'       => $total_packages,
-                    'packages'             => $formattedPackages,
-                ],
                     'packages'             => $formattedPackages,
                 ],
             ], 201);
@@ -150,7 +141,6 @@ class GenerateManifestController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal meng-generate manifest.',
-                'error'   => $e->getMessage(),
                 'error'   => $e->getMessage(),
             ], 500);
         }
