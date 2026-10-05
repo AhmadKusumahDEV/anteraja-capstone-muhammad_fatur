@@ -1,87 +1,48 @@
 services:
-  # 1. Database PostgreSQL
-  postgres_db_anteraja:
-    image: postgres:15-alpine
-    container_name: postgres_db_anteraja
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_DATABASE}
-    ports:
-      - "5552:5432"
-    volumes:
-      - postgres_data_anter_aja:/var/lib/postgresql/data
-    networks:
-      - backend-net
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # 2. Redis (Siap digunakan kapan saja)
-  redis_anteraja:
-    image: redis:7-alpine
-    container_name: anteraja_redis
-    restart: unless-stopped
-    volumes:
-      - redis_data_anter_aja:/data
-    networks:
-      - backend-net
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # 3. Job Sekali Jalan: Menjalankan "php artisan migrate --seed"
-  migrate:
-    image: anteraja-php:${IMAGE_TAG:-latest}
+  app_setup:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
-      target: prod  # <-- Kita ubah ke prod dulu agar jalan mulus
-    container_name: anteraja_migrate
-    user: www-data
-    env_file: .env
+    container_name: anteraja_app_setup
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
     environment:
       DB_CONNECTION: pgsql
       DB_HOST: postgres_db_anteraja
-      DB_PORT: "5432"
-      REDIS_HOST: redis_anteraja
-    networks:
-      - backend-net
-    command: ["php", "artisan", "migrate", "--force", "--seed"]
-    restart: "no"
+      DB_PORT: 5432
+      DB_DATABASE: mydatabase
+      DB_USERNAME: main
+      DB_PASSWORD: example
+    command: sh -c "composer install && [ -f .env ] || cp .env.example .env && chmod -R 775 storage bootstrap/cache && chown -R www-data:www-data storage bootstrap/cache && php artisan key:generate --force && php artisan migrate --force && php artisan db:seed --force"
     depends_on:
       postgres_db_anteraja:
         condition: service_healthy
+    networks:
+      - backend-net
 
-  # 4. Aplikasi Backend Utama (PHP-FPM)
   app:
     image: anteraja-php:${IMAGE_TAG:-latest}
     build:
       context: .
       dockerfile: docker/php/Dockerfile
-      target: prod  # <-- Kita ubah ke prod dulu agar jalan mulus
     container_name: anteraja_server
     restart: unless-stopped
-    env_file: .env
+    user: www-data
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
     environment:
       DB_CONNECTION: pgsql
       DB_HOST: postgres_db_anteraja
-      DB_PORT: "5432"
-      REDIS_HOST: redis_anteraja
-    networks:
-      - backend-net
-    volumes:
-      # -----------------------------------------------------
-      # UNCOMMENT BARIS DI BAWAH INI JIKA MENGGUNAKAN TARGET: dev
-      # - ./:/var/www/html
-      # -----------------------------------------------------
-      - storage_data:/var/www/html/storage
+      # DB_HOST: host.docker.internal
+      DB_PORT: 5432
+      DB_DATABASE: mydatabase
+      DB_USERNAME: main
+      DB_PASSWORD: example
     depends_on:
+      app_setup:
+        condition: service_completed_successfully
       postgres_db_anteraja:
         condition: service_healthy
       migrate:
@@ -156,9 +117,25 @@ services:
       app:
         condition: service_healthy
 
-# =============================================================================
-#  Konfigurasi Network & Volume
-# =============================================================================
+  postgres_db_anteraja:
+    image: postgres:15-alpine
+    container_name: postgres_db_anteraja
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=main
+      - POSTGRES_PASSWORD=example
+      - POSTGRES_DB=mydatabase
+    ports:
+      - "5552:5432"
+    networks:
+      - backend-net
+    volumes:
+      - postgres_data_anter_aja:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U main -d mydatabase" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 networks:
   backend-net:
@@ -167,6 +144,4 @@ networks:
 
 volumes:
   postgres_data_anter_aja:
-    driver: local
-  storage_data:
-  redis_data_anter_aja:
+        driver: local

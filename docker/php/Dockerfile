@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1
+FROM php:8.3-fpm
 
 # ---------- Stage 1: vendor ----------
 FROM composer:2 AS vendor

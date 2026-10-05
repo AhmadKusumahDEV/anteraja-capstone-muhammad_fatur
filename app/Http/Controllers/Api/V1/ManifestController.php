@@ -30,7 +30,6 @@ class ManifestController extends Controller
             'originHub:id,name',
             'destinationHub:id,name',
         ])
-            ->withCount('packages')
             ->where('type', $type)
             ->when($request->hub_id, fn ($q) => $q->where('destination_hub_id', $request->hub_id))
             ->orderBy('created_at', 'desc')
@@ -51,7 +50,7 @@ class ManifestController extends Controller
                 'status'               => $manifest->status instanceof \BackedEnum
                     ? $manifest->status->value
                     : $manifest->status,
-                'total_packages'       => $manifest->packages_count ?? 0,
+                'total_packages'       => $manifest->manifest_packages_count ?? null,
                 'created_at'           => $manifest->created_at?->format('Y-m-d H:i:s'),
             ];
         });

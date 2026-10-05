@@ -10,7 +10,17 @@ class UserSeeder extends Seeder
 {
     public function run()
     {
-        $users = [
+        DB::table('users')->upsert([
+            [
+                'id' => 'USR-001',
+                'nik' => 'ADM-102',
+                'name' => 'Admin Budi',
+                'role' => 'HUB_ADMIN',
+                'hub_id' => 'HUB-JKS-01',
+                'password_hash' => Hash::make('password123'),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
             [
                 'id' => 'USR-002',
                 'nik' => 'SUP-001',
@@ -21,29 +31,6 @@ class UserSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ]
-        ];
-
-        $hubs = ['HUB-JKS-01', 'HUB-BDO-01', 'HUB-SBY-01', 'HUB-MDN-01'];
-        $hubPrefixes = ['JKS', 'BDO', 'SBY', 'MDN'];
-        $userCounter = 3;
-
-        foreach ($hubs as $index => $hubId) {
-            $prefix = $hubPrefixes[$index];
-            for ($i = 1; $i <= 3; $i++) {
-                $users[] = [
-                    'id' => 'USR-' . str_pad($userCounter, 3, '0', STR_PAD_LEFT),
-                    'nik' => 'ADM-' . $prefix . '-' . $i,
-                    'name' => "Admin {$i} {$prefix}",
-                    'role' => 'HUB_ADMIN',
-                    'hub_id' => $hubId,
-                    'password_hash' => Hash::make('password123'),
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
-                $userCounter++;
-            }
-        }
-
-        DB::table('users')->upsert($users, ['id'], ['nik', 'name', 'role', 'hub_id', 'password_hash', 'updated_at']);
+        ], ['id'], ['nik', 'name', 'role', 'hub_id', 'password_hash', 'updated_at']);
     }
 }
