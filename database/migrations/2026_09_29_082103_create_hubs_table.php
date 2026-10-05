@@ -14,6 +14,8 @@ return new class extends Migration
             $table->string('name', 255);
             $table->string('region_name', 100);
             $table->string('location_tag', 50);
+            $table->decimal('latitude', 10, 7)->nullable();
+            $table->decimal('longitude', 10, 7)->nullable();
             $table->integer('max_capacity');
             $table->string('timezone', 50);
             $table->timestamps();
