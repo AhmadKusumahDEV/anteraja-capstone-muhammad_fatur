@@ -106,6 +106,12 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
                 m.useManifestStore.getState().fetchManifests();
               }
             });
+            import('./useHubStore').then((m) => {
+              const fetchHubCapacity = m.useHubStore.getState().fetchHubCapacity;
+              if (fetchHubCapacity && payload.data.hub_id) {
+                fetchHubCapacity(payload.data.hub_id);
+              }
+            });
 
             get().addLocalNotification({
               title: 'Manifest Baru Masuk',
