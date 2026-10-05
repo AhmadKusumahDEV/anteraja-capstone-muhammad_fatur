@@ -80,7 +80,7 @@ export default function ShipmentDetail() {
         <h1 className="text-2xl font-bold text-gray-900">Detail Manifest</h1>
       </div>
 
-      <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border-2 border-gray-100 bg-white p-6 shadow-sm">
         <div className="mb-4 flex flex-col items-start justify-between gap-4 border-b border-gray-100 pb-4 md:flex-row md:items-center">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">Manifest ID</p>
@@ -110,7 +110,7 @@ export default function ShipmentDetail() {
 
         <h3 className="mb-4 border-t border-gray-100 pt-6 text-lg font-bold text-gray-900">Daftar Paket</h3>
         
-        <div className="overflow-x-auto rounded-xl border border-gray-100">
+        <div className="overflow-x-auto rounded-xl border-2 border-gray-100">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>

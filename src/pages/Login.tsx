@@ -7,18 +7,20 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [nik, setNik] = useState('');
   const [password, setPassword] = useState('');
-  const [remember, setRemember] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nik || !password) {
-      toast.error('Mohon isi NIK / ID Operator dan Kata Sandi.');
+      setErrorMessage('Mohon isi ID Karyawan dan Kata Sandi.');
+      toast.error('Mohon isi ID Karyawan dan Kata Sandi.');
       return;
     }
 
+    setErrorMessage('');
     setIsProcessing(true);
 
     try {
@@ -27,7 +29,9 @@ export default function Login() {
       toast.success('Login berhasil! Mengalihkan ke Terminal...');
       navigate('/sla-queue', { replace: true });
     } catch (error: any) {
-      toast.error(error.response?.data?.message || error.message || 'Gagal login. Periksa NIK dan Kata Sandi.');
+      const msg = error.response?.data?.message || error.message || 'Gagal login. Periksa ID Karyawan dan Kata Sandi.';
+      setErrorMessage(msg);
+      toast.error(msg);
     } finally {
       setIsProcessing(false);
     }
@@ -98,7 +102,7 @@ export default function Login() {
             ].map((card) => (
               <div
                 key={card.title}
-                className="flex items-center xl:block rounded-xl border border-gray-200 bg-white p-4 xl:p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+                className="flex items-center xl:block rounded-xl border-2 border-gray-200 bg-white p-4 xl:p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
               >
                 <div className={`mr-4 xl:mr-0 xl:mb-4 flex shrink-0 h-10 w-10 items-center justify-center rounded-lg ${card.color}`}>
                   {card.icon}
@@ -126,17 +130,30 @@ export default function Login() {
 
           <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Masuk ke Akun</h2>
           <p className="mb-8 lg:mb-10 text-xs sm:text-sm leading-relaxed text-gray-500">
-            Masukkan NIK / ID Operator dan kata sandi Anda untuk mengakses sistem terminal.
+            Masukkan ID Karyawan dan kata sandi Anda untuk mengakses sistem terminal.
           </p>
 
           {/* Form */}
           <form onSubmit={handleLogin} className="flex flex-col gap-5 sm:gap-6">
             
+            {/* Error Message */}
+            {errorMessage && (
+              <div className="flex items-start gap-3 rounded-xl bg-red-50 p-4 border border-red-100">
+                <svg className="mt-0.5 h-5 w-5 shrink-0 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                <div className="flex-1">
+                  <h3 className="text-sm font-bold text-red-800">Login Gagal</h3>
+                  <p className="mt-1 text-xs font-medium text-red-600">{errorMessage}</p>
+                </div>
+              </div>
+            )}
+            
             {/* NIK */}
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <label htmlFor="nik" className="text-xs sm:text-sm font-semibold text-gray-800">NIK / ID Operator</label>
-                <span className="text-[10px] sm:text-xs font-semibold text-anteraja-primary">Format: ADM-XXX / NIK</span>
+                <label htmlFor="nik" className="text-xs sm:text-sm font-semibold text-gray-800">ID Karyawan</label>
+                <span className="text-[10px] sm:text-xs font-semibold text-anteraja-primary">Format: ADM-XXX / ID</span>
               </div>
               <div className="relative">
                 <svg className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -147,8 +164,8 @@ export default function Login() {
                   id="nik"
                   value={nik}
                   onChange={e => setNik(e.target.value)}
-                  placeholder="Contoh: ADM-102 atau NIK 3175..."
-                  className="w-full rounded-xl border border-gray-200 bg-white py-3 pl-10 pr-4 text-xs sm:text-sm text-gray-800 placeholder-gray-400 transition-colors focus:border-anteraja-primary focus:outline-none focus:ring-2 focus:ring-anteraja-primary/20"
+                  placeholder="Contoh: ADM-102 atau ID 3175..."
+                  className="w-full rounded-xl border-2 border-gray-200 bg-white py-3 pl-10 pr-4 text-xs sm:text-sm text-gray-800 placeholder-gray-400 transition-colors focus:border-anteraja-primary focus:outline-none focus:ring-2 focus:ring-anteraja-primary/20"
                 />
               </div>
             </div>
@@ -168,7 +185,7 @@ export default function Login() {
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="Masukkan kata sandi akun"
-                  className="w-full rounded-xl border border-gray-200 bg-white py-3 pl-10 pr-11 text-xs sm:text-sm text-gray-800 placeholder-gray-400 transition-colors focus:border-anteraja-primary focus:outline-none focus:ring-2 focus:ring-anteraja-primary/20"
+                  className="w-full rounded-xl border-2 border-gray-200 bg-white py-3 pl-10 pr-11 text-xs sm:text-sm text-gray-800 placeholder-gray-400 transition-colors focus:border-anteraja-primary focus:outline-none focus:ring-2 focus:ring-anteraja-primary/20"
                 />
                 <button
                   type="button"
@@ -188,20 +205,6 @@ export default function Login() {
                   )}
                 </button>
               </div>
-            </div>
-
-            {/* Remember */}
-            <div className="flex items-center gap-2.5">
-              <input
-                type="checkbox"
-                id="remember"
-                checked={remember}
-                onChange={e => setRemember(e.target.checked)}
-                className="h-4 w-4 cursor-pointer rounded border-gray-300 accent-anteraja-primary"
-              />
-              <label htmlFor="remember" className="cursor-pointer text-xs sm:text-sm font-medium text-gray-700">
-                Ingat Terminal &amp; ID Saya
-              </label>
             </div>
 
             {/* Submit */}

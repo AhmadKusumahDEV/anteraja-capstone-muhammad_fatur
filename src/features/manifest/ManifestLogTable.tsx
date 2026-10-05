@@ -25,7 +25,7 @@ export default function ManifestLogTable() {
   const totalPages = getTotalPages();
 
   return (
-    <section className="mt-6 rounded-2xl border border-surface-border bg-white shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
+    <section className="mt-6 rounded-2xl border-2 border-surface-border bg-white shadow-lg">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-gray-100 px-6 py-5">
         <div className="flex items-center gap-3">
@@ -48,7 +48,7 @@ export default function ManifestLogTable() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari manifest / hub..."
-              className="w-56 rounded-xl border border-gray-200 bg-gray-50/50 py-2 pl-8 pr-3 text-xs text-gray-700 placeholder:text-gray-400 focus:border-anteraja-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-anteraja-primary"
+              className="w-56 rounded-xl border-2 border-gray-200 bg-gray-50/50 py-2 pl-8 pr-3 text-xs text-gray-700 placeholder:text-gray-400 focus:border-anteraja-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-anteraja-primary"
             />
           </div>
 
@@ -56,7 +56,7 @@ export default function ManifestLogTable() {
           <select
             value={hubFilter}
             onChange={(e) => setHubFilter(e.target.value)}
-            className="rounded-xl border border-gray-200 bg-white py-2 pl-3 pr-8 text-xs font-medium text-gray-700 focus:border-anteraja-primary focus:outline-none focus:ring-1 focus:ring-anteraja-primary"
+            className="rounded-xl border-2 border-gray-200 bg-white py-2 pl-3 pr-8 text-xs font-medium text-gray-700 focus:border-anteraja-primary focus:outline-none focus:ring-1 focus:ring-anteraja-primary"
           >
             <option value="ALL">Semua Hub Target</option>
             {hubs.map((hub) => (
@@ -108,7 +108,7 @@ export default function ManifestLogTable() {
             type="button"
             onClick={() => setPage(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1}
-            className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-lg border-2 border-gray-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
           >
             &lt; Sebelumnya
           </button>
@@ -138,7 +138,7 @@ export default function ManifestLogTable() {
             type="button"
             onClick={() => setPage(Math.min(totalPages, currentPage + 1))}
             disabled={currentPage === totalPages || totalPages === 0}
-            className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-lg border-2 border-gray-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
           >
             Berikutnya &gt;
           </button>

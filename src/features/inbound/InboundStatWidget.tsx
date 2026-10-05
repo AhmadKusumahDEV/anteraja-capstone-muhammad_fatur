@@ -41,7 +41,7 @@ export default function InboundStatWidget() {
   }).length;
 
   return (
-    <article className="rounded-2xl border border-surface-border bg-white p-5 shadow-[0_1px_3px_rgba(15,23,42,0.04)] flex flex-col h-full">
+    <article className="rounded-2xl border-2 border-surface-border bg-white p-5 shadow-lg flex flex-col h-full">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">

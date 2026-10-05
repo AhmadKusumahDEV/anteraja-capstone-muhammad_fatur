@@ -172,7 +172,7 @@ export default function CreateBatchModal() {
                 <button
                   type="button"
                   onClick={selectAllPackages}
-                  className="rounded-md border border-gray-200 px-2 py-1 text-[11px] font-bold text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900"
+                  className="rounded-md border-2 border-gray-200 px-2 py-1 text-[11px] font-bold text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900"
                 >
                   Pilih Semua
                 </button>
@@ -189,14 +189,14 @@ export default function CreateBatchModal() {
                   value={packageSearchQuery}
                   onChange={(e) => setPackageSearchQuery(e.target.value)}
                   placeholder="Cari Resi (TRK-...) atau Area Tujuan..."
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 py-2 pl-9 pr-3 text-xs focus:border-anteraja-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-anteraja-primary"
+                  className="w-full rounded-xl border-2 border-gray-200 bg-gray-50 py-2 pl-9 pr-3 text-xs focus:border-anteraja-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-anteraja-primary"
                 />
               </div>
               <div className="flex items-center gap-2">
                 <select
                   value={packageServiceFilter}
                   onChange={(e) => setPackageServiceFilter(e.target.value as 'ALL' | 'SAME_DAY' | 'NEXT_DAY' | 'REGULAR')}
-                  className="rounded-xl border border-gray-200 bg-white py-2 pl-3 pr-8 text-xs font-medium text-gray-700 focus:border-anteraja-primary focus:outline-none focus:ring-1 focus:ring-anteraja-primary"
+                  className="rounded-xl border-2 border-gray-200 bg-white py-2 pl-3 pr-8 text-xs font-medium text-gray-700 focus:border-anteraja-primary focus:outline-none focus:ring-1 focus:ring-anteraja-primary"
                 >
                   <option value="ALL">Semua Servis</option>
                   <option value="SAME_DAY">Same Day</option>
@@ -284,7 +284,7 @@ export default function CreateBatchModal() {
             <button
               type="button"
               onClick={closeModal}
-              className="rounded-xl border border-gray-200 bg-white px-5 py-2 text-sm font-bold text-gray-600 hover:bg-gray-50"
+              className="rounded-xl border-2 border-gray-200 bg-white px-5 py-2 text-sm font-bold text-gray-600 hover:bg-gray-50"
             >
               Batal
             </button>

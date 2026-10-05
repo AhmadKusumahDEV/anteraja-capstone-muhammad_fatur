@@ -12,7 +12,7 @@ export default function MetricCards() {
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
       {/* Card 1 — In Hub Packages */}
-      <article className="flex items-center justify-between rounded-2xl border border-surface-border bg-white p-5 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
+      <article className="flex items-center justify-between rounded-2xl border-2 border-surface-border bg-white p-5 shadow-lg">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">
             In Hub Packages
@@ -40,7 +40,7 @@ export default function MetricCards() {
       </article>
 
       {/* Card 2 — In Transit */}
-      <article className="flex items-center justify-between rounded-2xl border border-surface-border bg-white p-5 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
+      <article className="flex items-center justify-between rounded-2xl border-2 border-surface-border bg-white p-5 shadow-lg">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">
             Incoming / In Transit

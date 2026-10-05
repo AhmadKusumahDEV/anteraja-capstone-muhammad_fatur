@@ -56,10 +56,10 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
         fixed top-0 right-0 z-30
         left-0 md:left-[88px] lg:left-[260px]
         h-[var(--spacing-navbar)]
-        bg-navbar-bg border-b border-navbar-border
+        bg-navbar-bg border-b-2 border-navbar-border
         flex items-center justify-between
         px-3 sm:px-6
-        shadow-[0_1px_3px_rgba(0,0,0,0.04)]
+        shadow-md
         transition-all duration-300
       "
       aria-label="Navigasi utama"

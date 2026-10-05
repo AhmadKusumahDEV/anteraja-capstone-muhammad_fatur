@@ -75,7 +75,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
       className={`
         fixed inset-y-0 left-0 z-50
         flex flex-col
-        bg-sidebar-bg text-sidebar-text
+        bg-sidebar-bg text-sidebar-text border-r-2 border-gray-200 shadow-2xl
         transition-all duration-300 ease-in-out
         w-[260px] md:w-[88px] lg:w-[260px]
         ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
@@ -100,7 +100,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
           <button 
             type="button" 
             onClick={() => setIsOpen(false)}
-            className="md:hidden absolute top-4 right-4 p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white"
+            className="md:hidden absolute top-4 right-4 p-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -116,8 +116,8 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
             {adminProfile?.hub_id ? adminProfile.hub_id.split('-').pop() : '00'}
           </span>
           <div className="flex-col md:hidden lg:flex">
-            <span className="text-sm font-semibold text-white">{adminProfile?.hub_id || 'Loading...'}</span>
-            <span className="flex items-center gap-1 text-xs text-emerald-400">
+            <span className="text-sm font-semibold text-gray-900">{adminProfile?.hub_id || 'Loading...'}</span>
+            <span className="flex items-center gap-1 text-xs text-emerald-500">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" aria-hidden="true" />
               Active Session • Live
             </span>
@@ -127,7 +127,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
 
       {/* ── Navigation Links ── */}
       <nav className="flex-1 px-3" aria-label="Menu utama">
-        <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-sidebar-text/50 md:text-center lg:text-left">
+        <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-gray-400 md:text-center lg:text-left">
           <span className="md:hidden lg:inline">Main Navigation</span>
           <span className="hidden md:inline lg:hidden">Menu</span>
         </p>
@@ -139,7 +139,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                 className={({ isActive }) =>
                   `group flex items-center md:justify-center lg:justify-start gap-3 rounded-xl px-3 py-2.5 md:py-3 lg:py-2.5 text-sm font-medium transition-all duration-200 relative ${isActive
                     ? 'bg-anteraja-primary text-white shadow-lg shadow-anteraja-primary/30'
-                    : 'text-sidebar-text hover:bg-sidebar-hover hover:text-white'
+                    : 'text-sidebar-text hover:bg-sidebar-hover hover:text-anteraja-primary'
                   }`
                 }
                 title={item.label}
@@ -159,7 +159,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
 
       {/* ── Sidebar Footer — User Info ── */}
       {/* ── User Profile Dropdown ── */}
-      <footer className="relative mt-auto border-t border-white/10" ref={profileRef}>
+      <footer className="relative mt-auto border-t border-gray-200" ref={profileRef}>
         <button
           type="button"
           onClick={() => setIsProfileOpen(!isProfileOpen)}
@@ -186,11 +186,11 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
             )}
 
             <div className="flex-col overflow-hidden text-left md:hidden lg:flex">
-              <span className="truncate text-sm font-semibold text-white">
+              <span className="truncate text-sm font-semibold text-gray-900">
                 {adminProfile?.name || 'Admin Budi'}
               </span>
               <span className="flex items-center gap-1 truncate text-xs text-sidebar-text">
-                <span className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${isLoading ? 'bg-yellow-400 animate-pulse' : isError ? 'bg-red-500' : 'bg-emerald-400'}`} aria-hidden="true" />
+                <span className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${isLoading ? 'bg-yellow-400 animate-pulse' : isError ? 'bg-red-500' : 'bg-emerald-500'}`} aria-hidden="true" />
                 ID: {adminProfile?.hub_id || 'ADM-102'}
               </span>
             </div>

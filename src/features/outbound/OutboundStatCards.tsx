@@ -6,7 +6,7 @@ export default function OutboundStatCards() {
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
       {/* Armada Kurir Aktif */}
-      <article className="rounded-2xl border border-surface-border bg-white p-5 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
+      <article className="rounded-2xl border-2 border-surface-border bg-white p-5 shadow-lg">
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">
@@ -40,7 +40,7 @@ export default function OutboundStatCards() {
       </article>
 
       {/* Siap Berangkat */}
-      <article className="rounded-2xl border border-surface-border bg-white p-5 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
+      <article className="rounded-2xl border-2 border-surface-border bg-white p-5 shadow-lg">
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">
@@ -80,7 +80,7 @@ export default function OutboundStatCards() {
       </article>
 
       {/* Dalam Pengantaran */}
-      <article className="rounded-2xl border border-surface-border bg-white p-5 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
+      <article className="rounded-2xl border-2 border-surface-border bg-white p-5 shadow-lg">
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">

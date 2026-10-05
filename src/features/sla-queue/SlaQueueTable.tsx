@@ -57,7 +57,7 @@ export default function SlaQueueTable() {
 
   return (
     <section
-      className="rounded-2xl border border-surface-border bg-white shadow-[0_1px_3px_rgba(15,23,42,0.04)]"
+      className="rounded-2xl border-2 border-surface-border bg-white shadow-lg"
       aria-labelledby="sla-table-heading"
     >
       {/* Table Header */}
@@ -113,7 +113,7 @@ export default function SlaQueueTable() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search Tracking ID (e.g. TRK-213)"
-              className="w-full sm:w-56 rounded-lg border border-gray-200 bg-white py-1.5 pl-8 pr-3 text-xs text-gray-700 placeholder:text-gray-400 focus:border-anteraja-primary focus:outline-none focus:ring-2 focus:ring-anteraja-primary/20"
+              className="w-full sm:w-56 rounded-lg border-2 border-gray-200 bg-white py-1.5 pl-8 pr-3 text-xs text-gray-700 placeholder:text-gray-400 focus:border-anteraja-primary focus:outline-none focus:ring-2 focus:ring-anteraja-primary/20"
             />
           </div>
 
@@ -126,7 +126,7 @@ export default function SlaQueueTable() {
               id="service-filter"
               value={serviceFilter}
               onChange={(e) => setServiceFilter(e.target.value as ServiceFilter)}
-              className="rounded-lg border border-gray-200 bg-white py-1.5 pl-2 pr-6 text-xs text-gray-700 focus:border-anteraja-primary focus:outline-none focus:ring-2 focus:ring-anteraja-primary/20"
+              className="rounded-lg border-2 border-gray-200 bg-white py-1.5 pl-2 pr-6 text-xs text-gray-700 focus:border-anteraja-primary focus:outline-none focus:ring-2 focus:ring-anteraja-primary/20"
             >
               <option value="ALL">All Services</option>
               <option value="SAME_DAY">Same Day</option>
@@ -164,7 +164,7 @@ export default function SlaQueueTable() {
           <button
             type="button"
             onClick={handleExport}
-            className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:bg-gray-50"
+            className="inline-flex items-center gap-2 rounded-xl border-2 border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:bg-gray-50"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -262,7 +262,7 @@ export default function SlaQueueTable() {
             type="button"
             onClick={() => setPage(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1}
-            className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-lg border-2 border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
           >
             Previous
           </button>
@@ -276,7 +276,7 @@ export default function SlaQueueTable() {
                 aria-current={currentPage === page ? 'page' : undefined}
                 className={`min-w-8 rounded-lg px-2 py-1.5 text-xs font-medium transition-colors ${currentPage === page
                   ? 'bg-anteraja-primary text-white shadow-sm'
-                  : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
+                  : 'border-2 border-gray-200 text-gray-600 hover:bg-gray-50'
                   }`}
               >
                 {page}
@@ -292,7 +292,7 @@ export default function SlaQueueTable() {
             type="button"
             onClick={() => setPage(Math.min(totalPages, currentPage + 1))}
             disabled={currentPage === totalPages}
-            className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-lg border-2 border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
           >
             Next
           </button>

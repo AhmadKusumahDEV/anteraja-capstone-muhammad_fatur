@@ -123,7 +123,7 @@ export default function CapacityAlarm() {
           </p>
 
           <div className="grid grid-cols-2 gap-4 mb-8">
-            <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-center">
+            <div className="bg-gray-50 border-2 border-gray-100 rounded-xl p-4 text-center">
               <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Maksimal Hub</p>
               <p className="text-2xl font-black text-gray-900">{alarmDetails.max_capacity}</p>
             </div>

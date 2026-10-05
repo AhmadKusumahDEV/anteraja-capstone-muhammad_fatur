@@ -40,7 +40,7 @@ export default function SlaQueue() {
           <button
             type="button"
             onClick={refreshQueue}
-            className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-600 shadow-sm transition-all hover:bg-gray-50 hover:text-gray-800 active:scale-[0.97]"
+            className="inline-flex items-center gap-2 rounded-xl border-2 border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-600 shadow-sm transition-all hover:bg-gray-50 hover:text-gray-800 active:scale-[0.97]"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

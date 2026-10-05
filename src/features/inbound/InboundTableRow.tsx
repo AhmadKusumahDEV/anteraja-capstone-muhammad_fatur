@@ -187,18 +187,30 @@ export default function InboundTableRow({ manifest }: Props) {
       {/* Aksi */}
       <td className="py-4 pl-3 pr-6 text-right">
         <div className="flex items-center justify-end gap-2">
-          {/* Detail button — always visible */}
+          {/* Detail button — Icon Only */}
           <button
             type="button"
+            title="Lihat Detail"
             onClick={() => navigate(`/shipments/${manifest.manifest_code}`)}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-gray-50 px-4 py-2 text-xs font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-200 transition-colors hover:bg-gray-100 active:scale-[0.97]"
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-50 text-gray-400 shadow-sm ring-1 ring-inset ring-gray-200 transition-all hover:bg-gray-100 hover:text-gray-700 active:scale-[0.97]"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
               <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
               <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
             </svg>
-            Detail
           </button>
+
+          {/* Lacak / Track button — Icon Only */}
+          {/* <button
+            type="button"
+            title="Lacak Armada"
+            onClick={() => alert(`Fitur Tracking / Maps untuk ${manifest.manifest_code} sedang dalam pengembangan!`)}
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-500 shadow-sm ring-1 ring-inset ring-indigo-200 transition-all hover:bg-indigo-100 hover:text-indigo-700 active:scale-[0.97]"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+            </svg>
+          </button> */}
 
           {/* Tiba Lebih Cepat — only when IN_TRANSIT */}
           {effectiveStatus === 'IN_TRANSIT' && (

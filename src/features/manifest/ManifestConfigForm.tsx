@@ -79,7 +79,7 @@ export default function ManifestConfigForm() {
   };
 
   return (
-    <article className="rounded-2xl border border-surface-border bg-white shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
+    <article className="rounded-2xl border-2 border-surface-border bg-white shadow-lg">
       <div className="border-b border-gray-100 px-6 py-5">
         <div className="flex items-center gap-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-pink-50">
@@ -105,7 +105,7 @@ export default function ManifestConfigForm() {
               id="hub-select"
               value={selectedHubId || ''}
               onChange={(e) => setSelectedHub(e.target.value)}
-              className="w-full appearance-none rounded-xl border border-gray-200 bg-white py-3 pl-10 pr-10 text-sm font-semibold text-gray-800 transition-colors focus:border-anteraja-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-anteraja-primary"
+              className="w-full appearance-none rounded-xl border-2 border-gray-200 bg-white py-3 pl-10 pr-10 text-sm font-semibold text-gray-800 transition-colors focus:border-anteraja-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-anteraja-primary"
             >
               <option value="" disabled>Pilih Hub Tujuan...</option>
               {hubs.map((hub) => (
@@ -140,7 +140,7 @@ export default function ManifestConfigForm() {
               id="origin-hub-select"
               value={originHubId || ''}
               onChange={(e) => setOriginHub(e.target.value)}
-              className="w-full appearance-none rounded-xl border border-gray-200 bg-white py-2.5 pl-9 pr-10 text-sm font-medium text-gray-800 transition-colors focus:border-anteraja-primary focus:outline-none focus:ring-1 focus:ring-anteraja-primary"
+              className="w-full appearance-none rounded-xl border-2 border-gray-200 bg-white py-2.5 pl-9 pr-10 text-sm font-medium text-gray-800 transition-colors focus:border-anteraja-primary focus:outline-none focus:ring-1 focus:ring-anteraja-primary"
             >
               <option value="">Acak (Random)</option>
               {hubs.map((hub) => (
@@ -163,7 +163,7 @@ export default function ManifestConfigForm() {
         </div>
 
         {/* Jumlah Paket */}
-        <div className="mb-8 rounded-xl border border-gray-100 bg-gray-50/50 p-5">
+        <div className="mb-8 rounded-xl border-2 border-gray-100 bg-gray-50/50 p-5">
           <div className="mb-4 flex items-end justify-between">
             <div>
               <label className="block text-[11px] font-bold uppercase tracking-widest text-gray-500">
@@ -171,7 +171,7 @@ export default function ManifestConfigForm() {
               </label>
               <p className="mt-1 text-xs text-gray-400">Estimasi muatan yang akan digenerate ke dalam kontainer/trolley</p>
             </div>
-            <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-1.5 shadow-sm">
+            <div className="flex items-center gap-2 rounded-lg border-2 border-gray-200 bg-white px-3 py-1.5 shadow-sm">
               <span className="text-lg font-bold text-gray-900">{packageCount}</span>
               <span className="text-xs font-semibold text-gray-400">Paket</span>
             </div>

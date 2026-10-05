@@ -7,11 +7,11 @@
   --color-anteraja-primary-dark: #B8005E;
   --color-anteraja-primary-light: #F0268A;
 
-  /* Sidebar (Slate/Gray Neutral untuk layar Proyektor) */
-  --color-sidebar-bg: #111827;
-  --color-sidebar-hover: #1F2937;
+  /* Sidebar (White Theme) */
+  --color-sidebar-bg: #FFFFFF;
+  --color-sidebar-hover: #FDF2F8; /* Light pink/gray for hover */
   --color-sidebar-active: #D6006E;
-  --color-sidebar-text: #9CA3AF;
+  --color-sidebar-text: #6B7280;
   --color-sidebar-text-active: #FFFFFF;
 
   /* Navbar */

@@ -92,7 +92,7 @@ export default function InboundConfirmModal() {
 
         {/* Body */}
         <div className="p-6">
-          <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+          <div className="rounded-xl border-2 border-gray-100 bg-gray-50 p-4">
             <h3 className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-3">Simulasi Kapasitas</h3>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">

@@ -8,7 +8,7 @@ export default function ManifestPreview() {
   const originHub = hubs.find((h) => h.id === originHubId);
 
   return (
-    <article className="flex h-full flex-col rounded-2xl border border-surface-border bg-white shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
+    <article className="flex h-full flex-col rounded-2xl border-2 border-surface-border bg-white shadow-lg">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
         <h2 className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-gray-500">
@@ -25,11 +25,11 @@ export default function ManifestPreview() {
       {/* Body */}
       <div className="flex flex-1 flex-col p-6">
         {/* Code Display */}
-        <div className="mb-6 rounded-2xl bg-gray-900 p-5 shadow-inner">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+        <div className="mb-6 rounded-2xl bg-pink-50 border border-pink-100 p-5 shadow-sm">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-pink-500/80">
             ESTIMASI KODE MANIFEST:
           </p>
-          <p className="mt-1 font-mono text-2xl font-bold tracking-tight text-pink-400 drop-shadow-[0_0_8px_rgba(244,114,182,0.6)]">
+          <p className="mt-1 font-mono text-2xl font-bold tracking-tight text-anteraja-primary">
             {customManifestCode}
           </p>
         </div>

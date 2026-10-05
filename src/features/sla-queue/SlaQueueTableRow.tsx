@@ -157,7 +157,7 @@ export default function SlaQueueTableRow({ pkg, index }: Props) {
           <button
             type="button"
             onClick={() => togglePriority(pkg.tracking_id)}
-            className="rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-gray-600 transition-colors hover:border-anteraja-primary/30 hover:bg-pink-50 hover:text-anteraja-primary"
+            className="rounded-lg border-2 border-gray-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-gray-600 transition-colors hover:border-anteraja-primary/30 hover:bg-pink-50 hover:text-anteraja-primary"
           >
             {isPriority ? 'Remove Flag' : 'Set Priority'}
           </button>
