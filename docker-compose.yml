@@ -102,9 +102,9 @@ services:
       target: prod
     container_name: anteraja_queue
     restart: unless-stopped
+    user: www-data
     working_dir: /var/www/html
     volumes:
-      - ./:/var/www/html
       - storage_data:/var/www/html/storage
     env_file: .env
     environment:
@@ -130,9 +130,9 @@ services:
       target: prod
     container_name: anteraja_scheduler
     restart: unless-stopped
+    user: www-data
     working_dir: /var/www/html
     volumes:
-      - ./:/var/www/html
       - storage_data:/var/www/html/storage
     env_file: .env
     environment:
