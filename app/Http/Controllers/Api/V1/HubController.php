@@ -73,6 +73,15 @@ class HubController extends Controller
             default             => 'NORMAL',
         };
 
+        // Hitung status kurir di hub ini
+        $activeCouriers = \App\Models\Courier::where('current_hub_id', $hubId)
+            ->where('status', 'ON_DUTY')
+            ->count();
+            
+        $standbyCouriers = \App\Models\Courier::where('current_hub_id', $hubId)
+            ->where('status', 'STANDBY')
+            ->count();
+
         return response()->json([
             'success' => true,
             'data'    => [
@@ -83,6 +92,8 @@ class HubController extends Controller
                 'in_transit_load' => $inTransitLoad,
                 'usage_percent'   => $usagePercent,
                 'capacity_status' => $capacityStatus,
+                'active_couriers' => $activeCouriers,
+                'standby_couriers'=> $standbyCouriers,
             ],
         ]);
     }
