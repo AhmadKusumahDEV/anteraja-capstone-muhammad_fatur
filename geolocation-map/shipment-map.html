@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Shipment Map Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        #map { height: 600px; width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); }
+        .info-window { font-size: 14px; padding: 5px; }
+    </style>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD1p7celaXU__6xYv53yTi_N__RL__P9mY&callback=initMap" async defer></script>
+    <script>
+        let map;
+        function initMap() {
+            map = new google.maps.Map(document.getElementById("map"), {
+                center: { lat: -6.2088, lng: 106.8456 },
+                zoom: 12,
+            });
+        }
+    </script>
+</head>
+<body>
+    <h2>Tracking Dashboard - Shipment & Courier</h2>
+    <p>Silakan klik pada pin/marker (merah atau biru) untuk melihat Info Window.</p>
+    <div id="map"></div>
+</body>
+</html>
