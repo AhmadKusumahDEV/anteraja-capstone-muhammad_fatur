@@ -3,19 +3,39 @@
 <head>
     <title>Shipment Map Dashboard</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        #map { height: 600px; width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); }
-        .info-window { font-size: 14px; padding: 5px; }
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        #map {
+            height: 600px;
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .info-window {
+            font-size: 14px;
+            padding: 5px;
+        }
     </style>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD1p7celaXU__6xYv53yTi_N__RL__P9mY&callback=initMap" async defer></script>
+
+    <!-- SCRIPT MAPS API: Ganti DEMO_KEY_ANDA -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD1p7celaXU__6xYv53yTi_N__RL__P9mY&callback=initMap"
+        async defer></script>
+
     <script>
         let map;
+
         function initMap() {
+            // 2. Inisialisasi Peta: Terpusat di wilayah operasi (Jakarta)
             map = new google.maps.Map(document.getElementById("map"), {
                 center: { lat: -6.2088, lng: 106.8456 },
                 zoom: 12,
             });
 
+            // 3. Array Data Shipment/Courier (Sesuai instruksi)
             const shipments = [
                 { tracking: "PKG-001", lat: -6.2146, lng: 106.8451, status: "In Transit" },
                 { tracking: "PKG-002", lat: -6.1931, lng: 106.8218, status: "Delivered" },
@@ -24,6 +44,7 @@
 
             const infoWindow = new google.maps.InfoWindow();
 
+            // 4. Loop Array: Tambahkan Marker & Info Window
             shipments.forEach(shipment => {
                 const marker = new google.maps.Marker({
                     position: { lat: shipment.lat, lng: shipment.lng },
@@ -31,17 +52,80 @@
                     title: shipment.tracking
                 });
 
+                // Tambahkan event click untuk memunculkan detail, animasi, dan Reverse Geocoding
                 marker.addListener("click", () => {
-                    infoWindow.setContent(`<div class="info-window"><b>📦 Tracking:</b> ${shipment.tracking}<br><b>🚚 Status:</b> ${shipment.status}</div>`);
+                    // 1. Animasi Zoom dan Pan ke arah marker yang diklik
+                    map.setZoom(15);
+                    map.panTo(marker.getPosition());
+
+                    // 2. Tampilkan loading sementara
+                    infoWindow.setContent(`<div class="info-window">Mencari detail alamat...</div>`);
                     infoWindow.open(map, marker);
+
+                    // 3. Reverse Geocoding: Ubah Lat/Lng menjadi Alamat Teks
+                    const geocoder = new google.maps.Geocoder();
+                    geocoder.geocode({ location: { lat: shipment.lat, lng: shipment.lng } }, (results, status) => {
+                        let locationName = "Alamat tidak dapat dimuat";
+                        if (status === "OK" && results[0]) {
+                            // Ambil teks alamat paling relevan
+                            locationName = results[0].formatted_address;
+                        }
+
+                        // Update isi InfoWindow dengan hasil alamat
+                        const content = `
+                            <div class="info-window">
+                                <b>📦 Tracking:</b> ${shipment.tracking}<br>
+                                <b>🚚 Status:</b> ${shipment.status}<br>
+                                <hr style="margin:8px 0; border:0; border-top:1px solid #ccc;">
+                                <b>📍 Lokasi Peta:</b><br>
+                                <span style="font-size: 12px; color: #555;">${locationName}</span>
+                            </div>`;
+                        infoWindow.setContent(content);
+                    });
                 });
+            });
+
+            // ==========================================
+            // 5. BONUS: Geocoding Alamat ke Koordinat/Marker
+            // ==========================================
+            const geocoder = new google.maps.Geocoder();
+            const bonusData = {
+                tracking: "PKG-BONUS-04",
+                address: "Monumen Nasional, Jakarta", // Hanya punya alamat teks
+                status: "Out for Delivery"
+            };
+
+            // Proses geocode: Ubah teks "Monumen Nasional, Jakarta" jadi Lat & Lng
+            geocoder.geocode({ address: bonusData.address }, (results, status) => {
+                if (status === "OK") {
+                    const marker = new google.maps.Marker({
+                        map: map,
+                        position: results[0].geometry.location,
+                        icon: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png" // Beda warna untuk membedakan
+                    });
+
+                    marker.addListener("click", () => {
+                        const content = `
+                            <div class="info-window">
+                                <b>Tracking (Geocode):</b> ${bonusData.tracking}<br>
+                                <b>Status:</b> ${bonusData.status}<br>
+                                <b>Alamat Asli:</b> ${bonusData.address}
+                            </div>`;
+                        infoWindow.setContent(content);
+                        infoWindow.open(map, marker);
+                    });
+                } else {
+                    console.error("Geocoding gagal karena: " + status);
+                }
             });
         }
     </script>
 </head>
+
 <body>
     <h2>Tracking Dashboard - Shipment & Courier</h2>
     <p>Silakan klik pada pin/marker (merah atau biru) untuk melihat Info Window.</p>
     <div id="map"></div>
 </body>
+
 </html>
