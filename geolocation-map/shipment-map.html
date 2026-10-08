@@ -15,6 +15,27 @@
                 center: { lat: -6.2088, lng: 106.8456 },
                 zoom: 12,
             });
+
+            const shipments = [
+                { tracking: "PKG-001", lat: -6.2146, lng: 106.8451, status: "In Transit" },
+                { tracking: "PKG-002", lat: -6.1931, lng: 106.8218, status: "Delivered" },
+                { tracking: "PKG-003", lat: -6.2253, lng: 106.8021, status: "Pending" }
+            ];
+
+            const infoWindow = new google.maps.InfoWindow();
+
+            shipments.forEach(shipment => {
+                const marker = new google.maps.Marker({
+                    position: { lat: shipment.lat, lng: shipment.lng },
+                    map: map,
+                    title: shipment.tracking
+                });
+
+                marker.addListener("click", () => {
+                    infoWindow.setContent(`<div class="info-window"><b>📦 Tracking:</b> ${shipment.tracking}<br><b>🚚 Status:</b> ${shipment.status}</div>`);
+                    infoWindow.open(map, marker);
+                });
+            });
         }
     </script>
 </head>
