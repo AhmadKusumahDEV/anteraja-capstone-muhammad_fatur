@@ -8,7 +8,7 @@
 
 ## 📋 Daftar Fitur Fungsional Phase 1 MVP (6 Core Modules)
 
-1. **`F-01` Autentikasi NIK / ID Operator & Penguncian Sesi Multi-Hub**: Login menggunakan NIK / ID Operator + Password dengan akun pre-setup (seeded). Mengunci sesi ke `assigned_hub_id`.
+1. **`F-01` Autentikasi NIK / ID Operator & Penguncian Sesi Multi-Hub**: Login menggunakan NIK / ID Operator + Password dengan akun pre-setup (seeded). Mengunci sesi ke `assigned_hub_id`. (Catatan: Panel Super Admin/Dual Dashboard tidak masuk dalam Phase 1, dan struktur data Hub telah menyertakan koordinat Latitude & Longitude untuk persiapan Phase 2).
 2. **`F-02` Manifest Data Generator**: Bulk simulator engine penyerapan data masif, penentuan otomatis jenis armada (Auto-Vehicle Determination), draf `MNF-YYMM-XXXX`, dan transactional insert `in_transit`.
 3. **`F-03` Dynamic SLA Queue Table & Dashboard Operations**: Dashboard agregator dual-metrik, pengurutan antrean dinamis berbasis Priority Flag & SLA Remaining, visual 3 warna (Merah/Kuning/Hijau), dan Quick Release Handover Kurir Satria.
 4. **`F-04` Outbound Dispatch Action & Fleet Management**: Manajemen manifes keluar (`OUTBOUND_DISPATCH`), pencatatan armada Kurir Satria *Standby*, dan aksi "Berangkatkan" sebagai pemicu pelepasan kapasitas fisik Hub.

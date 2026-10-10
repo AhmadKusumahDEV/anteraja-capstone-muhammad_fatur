@@ -1,4 +1,4 @@
-# Product Requirements Document (PRD) v5.1
+# Product Requirements Document (PRD) v5.2
 ## Courier Admin Mini-Panel: SLA & Priority Signaling System
 > **System Focus:** Mid-Mile Early Warning & Capacity Control System  
 > **Tech Stack:** React.js (Frontend) + Laravel REST API (Backend) + PostgreSQL + Redis + SSE  
@@ -19,17 +19,19 @@
 
 ## 1. Ringkasan Utama & Latar Belakang Produk
 
-Dokumen **Product Requirements Document (PRD) v5.1** ini menetapkan spesifikasi produk mendasar bagi pengembangan sistem **Courier Admin Mini-Panel**. 
+Dokumen **Product Requirements Document (PRD) v5.2** ini menetapkan spesifikasi produk mendasar bagi pengembangan sistem **Courier Admin Mini-Panel**. 
 
 Visi utama dari produk ini adalah mentransformasi pengelolaan antrean paket di titik transit logistik (*hub*) dari pendekatan statis konvensional **First-In-First-Out (FIFO)** menjadi **Dynamic Priority Queue System** berbasis sisa waktu SLA dan kapasitas fisik hub.
 
-Sistem ini dirancang dengan pendekatan **Multi-Tenant Multi-Hub Architecture**, di mana setiap Admin terisolasi pada `id_hub` tempatnya bertugas, didukung oleh pemicuan *real-time push signaling* via **Server-Sent Events (SSE)** untuk memantau beban kapasitas dan eskalasi keterlambatan paket.
+Sistem ini dirancang dengan pendekatan **Multi-Tenant Multi-Hub Architecture**, di mana setiap Admin terisolasi pada `id_hub` tempatnya bertugas, didukung oleh pemicuan *real-time push signaling* via **Server-Sent Events (SSE)** untuk memantau beban kapasitas dan eskalasi keterlambatan paket. 
+
+*Catatan Tambahan (v5.2): Pengembangan sistem saat ini juga meletakkan fondasi pencatatan data spasial (Latitude & Longitude) sebagai persiapan integrasi Machine Learning (ML) untuk Smart Routing dan Prediksi SLA di masa mendatang.*
 
 ---
 
 ## 2. Tantangan Operasional yang Diantisipasi & Skenario Risiko
 
-| Skenario Risiko Operasional | Antisipasi & Solusi Sistem (PRD v5.1) |
+| Skenario Risiko Operasional | Antisipasi & Solusi Sistem (PRD v5.2) |
 | :--- | :--- |
 | **Risiko Keterlambatan Paket Urgent (FIFO Bottleneck)**<br>Saat volume tinggi, paket layanan ekspres (*Same Day*) berpotensi tertumpuk di barisan belakang antrean penyortiran fisik. | **Dynamic SLA Sorting Engine**<br>Menghitung sisa menit batas waktu SLA (`remaining_minutes`) secara otomatis dan menempatkan paket paling mendekati *deadline* di urutan teratas antrean. |
 | **Risiko Over-Capacity Tanpa Peringatan**<br>Admin hub tidak memiliki visibilitas atas paket yang sedang dalam perjalanan (`In Transit`) menuju hub-nya sehingga hub berisiko melampaui daya tampung fisik. | **In-Transit Visibility & Threshold Control**<br>Menampilkan kalkulasi total beban (`In Hub` + `In Transit`) dan memicu sinyal peringatan jika melampaui `max_capacity` hub. |
@@ -46,7 +48,7 @@ Sistem ini dirancang dengan pendekatan **Multi-Tenant Multi-Hub Architecture**, 
 ### 3.2 MVP Scope Matrix (Phase 1 vs Phase 2)
 
 #### 🟢 Phase 1: In-Scope (MVP 2 Bulan Target - 6 Fitur Utama)
-1. **`F-01`**: Autentikasi NIK / ID Operator & Penguncian Sesi Multi-Hub (Pre-setup accounts).
+1. **`F-01`**: Autentikasi NIK / ID Operator & Penguncian Sesi Multi-Hub (Pre-setup accounts). *(Penyimpanan data Hub juga mencakup informasi koordinat geografis Latitude & Longitude sebagai fondasi awal sistem routing/ML di Phase 2).*
 2. **`F-02`**: **Manifest Data Generator** (Draft `MNF-YYMM-XXXX`, Auto-Vehicle Determination, Transactional Bulk Insert).
 3. **`F-03`**: **Dynamic SLA Queue Table & Dashboard Operations** (Dual-Metric Aggregator, Priority Sorting, 3-Color SLA Badge, Quick Release Handover Kurir Satria).
 4. **`F-04`**: **Outbound Dispatch Action & Fleet Management** (Manifes `OUTBOUND_DISPATCH`, Kurir Standby, Aksi Berangkatkan pemicu rilis kapasitas Hub).
@@ -54,9 +56,9 @@ Sistem ini dirancang dengan pendekatan **Multi-Tenant Multi-Hub Architecture**, 
 6. **`F-06`**: **Inbound Sorting & Fleet Acknowledgment (ACK)** (Rigid Capacity Check, Bulk Mutation ke `In Hub`, SLA Timestamp calculation).
 
 #### 🔴 Phase 2: Post-MVP Expansion (Future Release)
-1. Panel UI Kelola Super Admin (Create Hub, Assign Admin UI).
-2. Penugasan kurir *last-mile* berbasis *GPS Live Tracking*.
-3. Algoritma *Smart Routing* berbasis koordinat alamat pemesan.
+1. Panel UI Kelola Super Admin (Create Hub, Assign Admin UI). *(Catatan: Sistem dual dashboard tidak disertakan di MVP 1, diprioritaskan untuk Phase 2).*
+2. Penugasan kurir *last-mile* berbasis *GPS Live Tracking* (Memanfaatkan koordinat Hub).
+3. Algoritma *Smart Routing* berbasis koordinat alamat pemesan & Integrasi Machine Learning untuk Prediksi Keterlambatan.
 
 ---
 
@@ -65,6 +67,7 @@ Sistem ini dirancang dengan pendekatan **Multi-Tenant Multi-Hub Architecture**, 
 ### `F-01` Autentikasi NIK / ID Operator & Penguncian Sesi Multi-Hub
 * [x] Login menggunakan NIK / ID Operator + Password (akun pre-setup oleh admin).
 * [x] Sesi terikat secara eksplisit pada `assigned_hub_id`.
+* [x] Struktur Hub memuat atribut `latitude` dan `longitude`.
 
 ### `F-02` Manifest Data Generator
 * [x] Men-generate kode draf `MNF-YYMM-XXXX` dan menentukan jenis armada secara otomatis (<30 paket = Blind Van, 31-50 paket = Truk Engkel, >50 paket = Truk Besar).

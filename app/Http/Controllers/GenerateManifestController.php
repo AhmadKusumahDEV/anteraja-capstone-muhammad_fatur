@@ -108,6 +108,12 @@ class GenerateManifestController extends Controller
 
             DB::commit();
 
+            \App\Jobs\BroadcastInboundSignalJob::dispatch(
+                $manifest, 
+                $destination_hub, 
+                $total_packages
+            );
+
             // Format dan return response
             return response()->json([
                 'success' => true,
