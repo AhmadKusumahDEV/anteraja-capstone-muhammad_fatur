@@ -6,9 +6,19 @@
     <title>Demo Trigger Manifest</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #ffffff; color: #111827; font-family: system-ui, -apple-system, sans-serif; }
-        .btn-press { transition: transform 0.1s; }
-        .btn-press:active { transform: scale(0.95); }
+        body {
+            background-color: #ffffff;
+            color: #111827;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        .btn-press {
+            transition: transform 0.1s;
+        }
+
+        .btn-press:active {
+            transform: scale(0.95);
+        }
     </style>
 </head>
 <body class="p-6 h-screen flex flex-col justify-center">
@@ -21,7 +31,8 @@
             <!-- Asal -->
             <div>
                 <label class="block text-xs font-bold text-gray-700 mb-1 uppercase">Dari (Origin)</label>
-                <select id="originHub" class="w-full p-3 border-2 border-gray-200 rounded-xl bg-gray-50 font-medium outline-none focus:border-red-500">
+                <select id="originHub"
+                    class="w-full p-3 border-2 border-gray-200 rounded-xl bg-gray-50 font-medium outline-none focus:border-red-500">
                     <option value="">🎲 Acak (Random)</option>
                     <option value="HUB-MDN-01">Medan (MDN)</option>
                     <option value="HUB-SBY-01">Surabaya (SBY)</option>
@@ -33,7 +44,9 @@
             <!-- Tujuan -->
             <div>
                 <label class="block text-xs font-bold text-gray-700 mb-1 uppercase">Tujuan (Destination)</label>
-                <select id="destinationHub" class="w-full p-3 border-2 border-gray-200 rounded-xl bg-gray-50 font-medium outline-none focus:border-red-500" required>
+                <select id="destinationHub"
+                    class="w-full p-3 border-2 border-gray-200 rounded-xl bg-gray-50 font-medium outline-none focus:border-red-500"
+                    required
                     <option value="HUB-JKS-01">Jakarta (JKS)</option>
                     <option value="HUB-BDO-01">Bandung (BDO)</option>
                     <option value="HUB-SBY-01">Surabaya (SBY)</option>
@@ -44,13 +57,17 @@
             <!-- ETA -->
             <div>
                 <label class="block text-xs font-bold text-gray-700 mb-1 uppercase">ETA (Menit)</label>
-                <input type="number" id="etaMinutes" value="10" class="w-full p-3 border-2 border-gray-200 rounded-xl bg-gray-50 font-medium outline-none focus:border-red-500" required>
+                <input type="number" id="etaMinutes" value="10"
+                    class="w-full p-3 border-2 border-gray-200 rounded-xl bg-gray-50 font-medium outline-none focus:border-red-500"
+                    required>
             </div>
 
             <!-- Total Paket -->
             <div>
                 <label class="block text-xs font-bold text-gray-700 mb-1 uppercase">Total Paket</label>
-                <input type="number" id="totalPackages" value="150" max="150" class="w-full p-3 border-2 border-gray-200 rounded-xl bg-gray-50 font-medium outline-none focus:border-red-500" required>
+                <input type="number" id="totalPackages" value="150" max="150"
+                    class="w-full p-3 border-2 border-gray-200 rounded-xl bg-gray-50 font-medium outline-none focus:border-red-500"
+                    required>
             </div>
 
             <!-- Token JWT -->
@@ -60,7 +77,8 @@
             </div>
 
             <div class="pt-6">
-                <button type="submit" id="submitBtn" class="btn-press w-full bg-red-600 text-white font-black text-lg py-4 rounded-2xl shadow-[0_8px_0_rgb(185,28,28)] active:shadow-[0_0px_0_rgb(185,28,28)] active:translate-y-2 uppercase tracking-wide">
+                <button type="submit" id="submitBtn"
+                    class="btn-press w-full bg-red-600 text-white font-black text-lg py-4 rounded-2xl shadow-[0_8px_0_rgb(185,28,28)] active:shadow-[0_0px_0_rgb(185,28,28)] active:translate-y-2 uppercase tracking-wide">
                     🚀 TEMBAK SEKARANG
                 </button>
             </div>
@@ -68,14 +86,14 @@
     </div>
 
     <!-- Modal Success/Error -->
-    <div id="toast" class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full text-sm font-bold shadow-2xl transition-all duration-300 opacity-0 pointer-events-none scale-90 z-50 whitespace-nowrap">
+    <div id="toast"
+        class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full text-sm font-bold shadow-2xl transition-all duration-300 opacity-0 pointer-events-none scale-90 z-50 whitespace-nowrap">
         Memproses...
     </div>
 
     <script>
         document.getElementById('triggerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             const btn = document.getElementById('submitBtn');
             const toast = document.getElementById('toast');
             const origin = document.getElementById('originHub').value;
@@ -136,4 +154,6 @@
         }
     </script>
 </body>
+
 </html>
+					

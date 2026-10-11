@@ -39,10 +39,15 @@ class SseController extends Controller
             } catch (\Exception $e) {
                 return;
             }
+            
+            // Batasi durasi 1 worker maksimal 5 menit (300 detik) untuk cegah memory leak
+            $startTime = time();
+            $maxDuration = 300;
 
             // Loop tak terbatas untuk menjaga koneksi tetap hidup
             while (true) {
-                if (connection_aborted()) {
+                // Hentikan jika browser ditutup ATAU waktu sudah lebih dari 5 menit
+                if (connection_aborted() || (time() - $startTime > $maxDuration)) {
                     $redis->close();
                     break;
                 }
