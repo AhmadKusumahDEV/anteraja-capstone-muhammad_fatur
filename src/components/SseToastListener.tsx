@@ -15,24 +15,26 @@ const SseToastListener = () => {
     }
   }, [latestInbound]);
 
-  // Toast saat kapasitas berubah (OVERCAPACITY)
+  // Toast saat kapasitas berubah (OVERCAPACITY / UPDATE)
   useEffect(() => {
     if (capacityData) {
       console.log('[SSE EVENT LOG] CAPACITY_LOAD_ALERT received:', capacityData);
-      
-      // Jika ada peringatan overcapacity dengan in_transit_load (format baru dari backend)
-      if (capacityData.in_transit_load !== undefined) {
+
+      const isOverCapacity =
+        capacityData.status_zone === 'CRITICAL' ||
+        (capacityData.max_capacity > 0 &&
+          (capacityData.current_load + (capacityData.in_transit_load || 0)) > capacityData.max_capacity);
+
+      if (isOverCapacity) {
         toast.error(
-          `AWAS! Beban: ${capacityData.current_load} + OTW: ${capacityData.in_transit_load} melebihi Kapasitas (${capacityData.max_capacity})!`,
+          capacityData.message ||
+            `🚨 AWAS! Beban: ${capacityData.current_load} + OTW: ${capacityData.in_transit_load || 0} melebihi Kapasitas (${capacityData.max_capacity})!`,
           { duration: 8000 }
         );
+      } else if (capacityData.status_zone === 'WARNING') {
+        toast.error(`⚠️ ${capacityData.message || 'Kapasitas hub mendekati batas maksimal!'}`, { duration: 5000 });
       } else {
-        // Fallback untuk format payload kapasitas lama
-        if (capacityData.status_zone === 'WARNING') {
-          toast.error(`⚠️ ${capacityData.message}`, { duration: 5000 });
-        } else {
-          toast(`📦 ${capacityData.message}`, { duration: 3000 });
-        }
+        toast.success(`📦 ${capacityData.message || 'Kapasitas hub diperbarui.'}`, { duration: 4000 });
       }
     }
   }, [capacityData]);

@@ -2,10 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import cowwSoundUrl from '../assets/coww.mpeg';
 import { useAdminContext } from '../context/AdminContext';
 import { useNotificationStore } from '../store/useNotificationStore';
+import { useHubStore } from '../store/useHubStore';
 
 export default function CapacityAlarm() {
   const { isAlarmMuted, toggleAlarmMute } = useAdminContext();
   const capacityData = useNotificationStore((state) => state.capacityData);
+  const hubCapacity = useHubStore((state) => state.hubCapacity);
 
   const [showModal, setShowModal] = useState(false);
   const [isSnoozed, setIsSnoozed] = useState(false);
@@ -40,31 +42,57 @@ export default function CapacityAlarm() {
   };
 
   useEffect(() => {
-    // Tangkap data dari SSE Backend
-    // Sekarang Backend memberikan status_zone: "CRITICAL" jika bahaya
-    if (capacityData && capacityData.status_zone === 'CRITICAL') {
+    // Tangkap data dari SSE Backend / Hub Store
+    if (!capacityData) {
+      setShowModal(false);
+      return;
+    }
+
+    const currentLoad = Number(capacityData.current_load ?? hubCapacity?.current ?? 0);
+    // Cari in_transit_load dari berbagai alternatif field data atau fallback ke hubCapacity
+    const inTransitLoad = Number(
+      capacityData.in_transit_load ||
+      (capacityData as any).in_transit ||
+      (capacityData as any).in_transit_count ||
+      (capacityData as any).in_transit_packages ||
+      hubCapacity?.in_transit_load ||
+      0
+    );
+    const maxCapacity = Number(capacityData.max_capacity ?? hubCapacity?.max ?? 0);
+
+    // Bahaya jika zone CRITICAL atau (current + in_transit) melebihi max_capacity
+    const isOverCapacity =
+      capacityData.status_zone === 'CRITICAL' ||
+      (maxCapacity > 0 && currentLoad + inTransitLoad > maxCapacity);
+
+    if (isOverCapacity) {
       setAlarmDetails({
-        current_load: capacityData.current_load,
-        in_transit_load: capacityData.in_transit_load || 0, // Fallback jika dihapus
-        max_capacity: capacityData.max_capacity,
+        current_load: currentLoad,
+        in_transit_load: inTransitLoad,
+        max_capacity: maxCapacity,
       });
 
       if (!isSnoozed && !isDismissed) {
         setShowModal(true);
       }
     } else {
-      // Jika sudah turun menjadi HIGH/MODERATE/SAFE, otomatis tutup modal
+      // Jika kapasitas sudah normal/aman, otomatis tutup modal
       setShowModal(false);
     }
-  }, [capacityData, isSnoozed, isDismissed]);
+  }, [capacityData, hubCapacity, isSnoozed, isDismissed]);
 
   useEffect(() => {
-    if (showModal && !isAlarmMuted && capacityData?.play_sound) {
-      // Gunakan cowwSoundUrl bawaan kita sebagai default, atau audio dinamis
-      const audio = new Audio(cowwSoundUrl);
-      audio.loop = true;
-      audio.play().catch((e) => console.error("Audio block oleh browser", e));
-      audioRef.current = audio;
+    if (showModal && !isAlarmMuted) {
+      try {
+        const audio = new Audio(cowwSoundUrl);
+        audio.loop = true;
+        audio.play().catch((err) => {
+          console.warn('[CapacityAlarm] Autoplay blocked by browser:', err);
+        });
+        audioRef.current = audio;
+      } catch (err) {
+        console.warn('[CapacityAlarm] Error playing alarm sound:', err);
+      }
     }
 
     return () => {

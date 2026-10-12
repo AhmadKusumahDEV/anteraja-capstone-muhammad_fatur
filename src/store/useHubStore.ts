@@ -432,6 +432,20 @@ export const useHubStore = create<HubState>((set, get) => ({
             usage_percent:    cap.usage_percent,
             capacity_status:  cap.capacity_status,
             in_transit_load:  cap.in_transit_load,
+            standby_couriers: cap.standby_couriers,
+          }
+        });
+
+        // Sinkronkan ke OutboundStore stats jika standby_couriers dikembalikan
+        import('./useOutboundStore').then((m) => {
+          const currentStats = m.useOutboundStore.getState().stats;
+          if (cap.standby_couriers !== undefined) {
+            m.useOutboundStore.setState({
+              stats: {
+                ...currentStats,
+                active_couriers: cap.standby_couriers,
+              },
+            });
           }
         });
       }

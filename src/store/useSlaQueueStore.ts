@@ -174,12 +174,17 @@ export const useSlaQueueStore = create<SlaQueueState>((set, get) => ({
     set({ selectedPackage: pkg, isModalOpen: true, selectedCourierId: null, couriers: [] });
     try {
       const response = await api.get('/hubs/couriers/standby');
-      if (response.data.success) {
+      if (response.data.success && Array.isArray(response.data.data)) {
         set({ couriers: response.data.data });
+      } else {
+        // Fallback jika response tidak array
+        const dummyCouriers = useHubStore.getState().couriers.filter(c => c.status === 'STANDBY');
+        set({ couriers: dummyCouriers });
       }
     } catch (error) {
-      console.error('Failed to fetch couriers:', error);
-      toast.error('Gagal mengambil daftar kurir.');
+      console.error('Failed to fetch couriers, using fallback:', error);
+      const fallbackCouriers = useHubStore.getState().couriers.filter(c => c.status === 'STANDBY');
+      set({ couriers: fallbackCouriers });
     }
   },
   

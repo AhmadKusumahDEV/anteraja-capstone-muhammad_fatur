@@ -61,9 +61,16 @@ interface OutboundState {
 }
 
 const buildStats = (batches: OutboundBatch[]): OutboundStats => {
+  const hubCapacity = useHubStore.getState().hubCapacity;
   const couriers = useHubStore.getState().couriers;
+
+  // Prioritaskan standby_couriers dari API GET /api/v1/hubs/{hubId}/capacity
+  const activeCouriersCount = hubCapacity.standby_couriers !== undefined
+    ? hubCapacity.standby_couriers
+    : couriers.filter((c) => c.status === 'STANDBY').length;
+
   return {
-    active_couriers: couriers.filter((c) => c.status !== 'OFFLINE').length,
+    active_couriers: activeCouriersCount,
     ready_to_depart: batches.filter((b) => b.status === 'SIAP_BERANGKAT').length,
     ready_to_depart_packages: batches.filter((b) => b.status === 'SIAP_BERANGKAT').reduce((s, b) => s + b.total_packages, 0),
     in_delivery: batches.filter((b) => b.status === 'DALAM_PENGANTARAN').length,
@@ -146,6 +153,10 @@ export const useOutboundStore = create<OutboundState>((set, get) => ({
   fetchBatches: async () => {
     set({ isLoading: true });
     try {
+      const user = useAuthStore.getState().user;
+      if (user?.hub_id) {
+        await useHubStore.getState().fetchHubCapacity(user.hub_id);
+      }
       const { data } = await api.get('/outbound/manifests');
       if (data.success) {
         set({ batches: data.data, stats: buildStats(data.data) });

@@ -1,6 +1,11 @@
 import { create } from 'zustand';
 import api from '../services/api';
+import { useHubStore } from './useHubStore';
+import { useInboundStore } from './useInboundStore';
+import { useManifestStore } from './useManifestStore';
+import { useOutboundStore } from './useOutboundStore';
 import { useSlaQueueStore } from './useSlaQueueStore';
+import slaWarningUrl from '../assets/sla_warning.wav';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/v1';
 
@@ -28,6 +33,7 @@ interface SlaBreachData {
   hub_id: string;
   critical_packages_count: number;
   message: string;
+  play_sound?: string;
 }
 
 interface InboundData {
@@ -95,61 +101,115 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
           case 'INBOUND_ARRIVAL_SIGNAL':
             set({ latestInbound: payload.data });
 
-            // "Invalidate Query" style: Refresh InboundTable automatically!
-            import('./useInboundStore').then((m) => {
-              if (m.useInboundStore.getState().fetchManifests) {
-                m.useInboundStore.getState().fetchManifests();
-              }
-            });
-            import('./useManifestStore').then((m) => {
-              if (m.useManifestStore.getState().fetchManifests) {
-                m.useManifestStore.getState().fetchManifests();
-              }
-            });
-            import('./useHubStore').then((m) => {
-              const fetchHubCapacity = m.useHubStore.getState().fetchHubCapacity;
-              if (fetchHubCapacity && payload.data.hub_id) {
-                fetchHubCapacity(payload.data.hub_id);
-              }
-            });
+            // Invalidate query style: refresh tables
+            useInboundStore.getState().fetchManifests?.();
+            useManifestStore.getState().fetchManifests?.();
+            if (payload.data?.hub_id) {
+              useHubStore.getState().fetchHubCapacity(payload.data.hub_id);
+            }
 
             get().addLocalNotification({
               title: 'Manifest Baru Masuk',
-              message: payload.data.message,
+              message: payload.data?.message || 'Truk manifest baru tiba di hub.',
               type: 'INFO',
             });
             break;
 
-          case 'CAPACITY_LOAD_ALERT':
-            set({ capacityData: payload.data });
+          case 'CAPACITY_LOAD_ALERT': {
+            const data = payload.data || {};
+            const currentCap = useHubStore.getState().hubCapacity;
 
-            // Sync secara real-time ke HubStore agar HubCapacityCard langsung bereaksi (Zero Polling)
-            import('./useHubStore').then((m) => {
-              const currentCap = m.useHubStore.getState().hubCapacity;
-              m.useHubStore.getState().setHubCapacity({
-                ...currentCap,
-                current: payload.data.current_load,
-                max: payload.data.max_capacity,
-                usage_percent: payload.data.capacity_percentage,
-                capacity_status: payload.data.status_zone,
+            const curLoad = Number(data.current_load ?? currentCap?.current ?? 0);
+            
+            // Tangkap in_transit_load dari berbagai variasi field data atau fallback ke store
+            const incomingInTransit = 
+              data.in_transit_load ?? 
+              data.in_transit ?? 
+              data.in_transit_count ?? 
+              data.in_transit_packages;
+
+            const inTransit = Number(
+              incomingInTransit !== undefined && incomingInTransit !== null && incomingInTransit !== ''
+                ? incomingInTransit
+                : (currentCap?.in_transit_load ?? 0)
+            );
+
+            const maxCap = Number(data.max_capacity ?? currentCap?.max ?? 0);
+
+            // Hitung persentase jika backend tidak mengirimkannya langsung (misal payload manifest overcapacity)
+            const calculatedPercent = maxCap > 0 
+              ? Math.round(((curLoad + inTransit) / maxCap) * 100) 
+              : 0;
+            const percentage = data.capacity_percentage ?? calculatedPercent;
+
+            // Tentukan status zone secara akurat
+            const isCritical = payload.type === 'CRITICAL' || 
+              (maxCap > 0 && (curLoad + inTransit) > maxCap) || 
+              data.status_zone === 'CRITICAL';
+            const statusZone = data.status_zone ?? (isCritical ? 'CRITICAL' : 'SAFE');
+
+            const normalizedCapacityData = {
+              ...data,
+              current_load: curLoad,
+              in_transit_load: inTransit,
+              max_capacity: maxCap,
+              capacity_percentage: percentage,
+              status_zone: statusZone,
+              message: payload.message || data.message || 'Kapasitas hub diperbarui.',
+              play_sound: data.play_sound,
+            };
+
+            set({ capacityData: normalizedCapacityData });
+
+            const standbyCouriers = data.standby_couriers !== undefined ? data.standby_couriers : currentCap?.standby_couriers;
+            useHubStore.getState().setHubCapacity({
+              ...currentCap,
+              current: curLoad,
+              max: maxCap > 0 ? maxCap : (currentCap?.max || 0),
+              in_transit_load: inTransit,
+              usage_percent: percentage,
+              capacity_status: statusZone,
+              standby_couriers: standbyCouriers,
+            });
+
+            if (standbyCouriers !== undefined) {
+              const currentStats = useOutboundStore.getState().stats;
+              useOutboundStore.setState({
+                stats: {
+                  ...currentStats,
+                  active_couriers: standbyCouriers,
+                },
               });
-            });
+            }
 
-            import('./useSlaQueueStore').then((m) => {
-              if (m.useSlaQueueStore.getState().fetchQueue) {
-                m.useSlaQueueStore.getState().fetchQueue();
-              }
-            });
+            // Sync ke backend capacity jika ada hub_id
+            if (data.hub_id) {
+              useHubStore.getState().fetchHubCapacity(data.hub_id);
+            }
+
+            useSlaQueueStore.getState().fetchQueue?.();
 
             get().addLocalNotification({
               title: payload.title || 'Info Kapasitas Hub',
-              message: payload.message || payload.data.message || 'Kapasitas hub diperbarui.',
-              type: payload.type || 'INFO',
+              message: payload.message || data.message || 'Kapasitas hub diperbarui.',
+              type: payload.type || (isCritical ? 'CRITICAL' : 'INFO'),
             });
             break;
+          }
 
           case 'SLA_BREACH_WARNING':
             set({ slaBreach: payload.data });
+
+            // Putar audio peringatan SLA langsung dari asset frontend
+            try {
+              const audio = new Audio(slaWarningUrl);
+              audio.play().catch((err) => {
+                console.warn('[Audio] Autoplay SLA diblokir oleh browser:', err);
+              });
+            } catch (err) {
+              console.warn('[Audio] Gagal memutar audio SLA:', err);
+            }
+
             get().addLocalNotification({
               title: 'Peringatan SLA',
               message: payload.data.message,

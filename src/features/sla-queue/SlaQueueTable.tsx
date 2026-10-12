@@ -2,7 +2,7 @@ import type { ServiceFilter } from '../../types/sla-queue';
 import { useSlaQueueStore } from '../../store/useSlaQueueStore';
 import { useHubStore } from '../../store/useHubStore';
 import { generatePagination } from '../../utils/pagination';
-import { exportToCsv } from '../../utils/exportCsv';
+// import { exportToCsv } from '../../utils/exportCsv';
 import SlaQueueTableRow from './SlaQueueTableRow';
 
 export default function SlaQueueTable() {
@@ -26,34 +26,34 @@ export default function SlaQueueTable() {
   const paginated = getPaginatedPackages();
   const totalPages = getTotalPages();
 
-  const handleExport = () => {
-    const packages = getSortedFilteredPackages();
-    const headers = [
-      'Tracking ID',
-      'Service Type',
-      'Arrival Timestamp',
-      'SLA Deadline',
-      'SLA Remaining (menit)',
-      'Priority Status',
-    ];
-    const rows = packages.map((pkg) => {
-      const now = Date.now();
-      const slaDeadlineTime = new Date(pkg.sla_deadline).getTime();
-      const diffMs = slaDeadlineTime - now;
-      const remainingMinutes = Math.floor(diffMs / 60000);
-      const isBreached = remainingMinutes < 0;
+  // const handleExport = () => {
+  //   const packages = getSortedFilteredPackages();
+  //   const headers = [
+  //     'Tracking ID',
+  //     'Service Type',
+  //     'Arrival Timestamp',
+  //     'SLA Deadline',
+  //     'SLA Remaining (menit)',
+  //     'Priority Status',
+  //   ];
+  //   const rows = packages.map((pkg) => {
+  //     const now = Date.now();
+  //     const slaDeadlineTime = new Date(pkg.sla_deadline).getTime();
+  //     const diffMs = slaDeadlineTime - now;
+  //     const remainingMinutes = Math.floor(diffMs / 60000);
+  //     const isBreached = remainingMinutes < 0;
 
-      return [
-        pkg.tracking_id,
-        pkg.service_type,
-        new Date(pkg.hub_arrival_timestamp).toLocaleString('id-ID'),
-        new Date(pkg.sla_deadline).toLocaleString('id-ID'),
-        isBreached ? '0' : remainingMinutes.toString(),
-        pkg.is_priority ? 'PRIORITY' : 'NORMAL',
-      ];
-    });
-    exportToCsv('sla_queue_packages.csv', headers, rows);
-  };
+  //     return [
+  //       pkg.tracking_id,
+  //       pkg.service_type,
+  //       new Date(pkg.hub_arrival_timestamp).toLocaleString('id-ID'),
+  //       new Date(pkg.sla_deadline).toLocaleString('id-ID'),
+  //       isBreached ? '0' : remainingMinutes.toString(),
+  //       pkg.is_priority ? 'PRIORITY' : 'NORMAL',
+  //     ];
+  //   });
+  //   exportToCsv('sla_queue_packages.csv', headers, rows);
+  // };
 
   return (
     <section
@@ -160,7 +160,7 @@ export default function SlaQueueTable() {
             Priority Only
           </button>
 
-          {/* Export CSV */}
+          {/* Export CSV
           <button
             type="button"
             onClick={handleExport}
@@ -170,7 +170,7 @@ export default function SlaQueueTable() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
             Export CSV
-          </button>
+          </button> */}
         </div>
       </div>
 

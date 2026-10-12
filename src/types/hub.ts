@@ -85,4 +85,5 @@ export interface HubCapacity {
   // MODERATE | WARNING | CRITICAL (from backend) — mirrors our frontend thresholds
   capacity_status?: 'NORMAL' | 'MODERATE' | 'WARNING' | 'CRITICAL';
   in_transit_load?: number;
+  standby_couriers?: number;
 }

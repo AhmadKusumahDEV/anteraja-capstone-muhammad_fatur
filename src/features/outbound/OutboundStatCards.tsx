@@ -1,11 +1,18 @@
 import { useOutboundStore } from '../../store/useOutboundStore';
+import { useHubStore } from '../../store/useHubStore';
 
 export default function OutboundStatCards() {
   const { stats } = useOutboundStore();
+  const hubCapacity = useHubStore((state) => state.hubCapacity);
+
+  // Standby couriers dari GET /api/v1/hubs/{hubId}/capacity merepresentasikan kurir aktif siap tugas
+  const activeCouriers = hubCapacity.standby_couriers !== undefined
+    ? hubCapacity.standby_couriers
+    : stats.active_couriers;
 
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-      {/* Armada Kurir Aktif */}
+      {/* Armada Kurir Aktif / Standby */}
       <article className="rounded-2xl border-2 border-surface-border bg-white p-5 shadow-lg">
         <div className="flex items-start justify-between">
           <div>
@@ -14,9 +21,9 @@ export default function OutboundStatCards() {
             </h2>
             <p className="mt-2 flex items-baseline gap-2">
               <span className="text-4xl font-bold tracking-tight text-gray-900">
-                {stats.active_couriers}
+                {activeCouriers}
               </span>
-              <span className="text-sm font-medium text-gray-500">Kurir Satria Hadir</span>
+              <span className="text-sm font-medium text-gray-500">Kurir Satria Standby</span>
             </p>
           </div>
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50">
@@ -34,7 +41,7 @@ export default function OutboundStatCards() {
         <div className="mt-4 flex items-center gap-1.5 border-t border-gray-100 pt-3">
           <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden="true" />
           <span className="text-xs font-semibold text-emerald-700">
-            Standby &amp; Sedang Mengantar
+            Standby Siap Dispatch
           </span>
         </div>
       </article>

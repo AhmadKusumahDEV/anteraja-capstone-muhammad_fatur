@@ -1,14 +1,21 @@
 import { useEffect } from 'react';
 import { useOutboundStore } from '../store/useOutboundStore';
+import { useHubStore } from '../store/useHubStore';
+import { useAuthStore } from '../store/useAuthStore';
 import OutboundStatCards from '../features/outbound/OutboundStatCards';
 import DispatchBatchBoard from '../features/outbound/DispatchBatchBoard';
 
 export default function Outbound() {
   const { fetchBatches } = useOutboundStore();
+  const { fetchHubCapacity } = useHubStore();
+  const { user } = useAuthStore();
 
   useEffect(() => {
     fetchBatches();
-  }, [fetchBatches]);
+    if (user?.hub_id) {
+      fetchHubCapacity(user.hub_id);
+    }
+  }, [fetchBatches, fetchHubCapacity, user?.hub_id]);
 
   return (
     <>
