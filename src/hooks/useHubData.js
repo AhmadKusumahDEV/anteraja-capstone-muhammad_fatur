@@ -108,7 +108,7 @@ export function useHubData() {
           }
         } catch (aiErr) {
           currentFileStatuses.aiSummary = 'error';
-          aiSummaryError = aiErr.message;
+          aiSummaryError = `ai-summary.json could not be loaded: ${aiErr.message}`;
         }
 
         if (isCancelled) return;

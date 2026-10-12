@@ -86,22 +86,9 @@ export function joinAndAdaptHubs(metricsData, locationsData) {
     }
   });
 
-  // Track matched location IDs
-  const matchedLocationIds = new Set();
-
   const hubs = rawMetricsHubs.map(metric => {
     const loc = locationMap.get(metric.hub_id);
-    if (metric.hub_id) {
-      matchedLocationIds.add(metric.hub_id);
-    }
     return adaptHubRecord(metric, loc);
-  });
-
-  // Include any hubs present only in locations (with safe fallback metrics)
-  rawLocationsHubs.forEach(loc => {
-    if (loc?.hub_id && !matchedLocationIds.has(loc.hub_id)) {
-      hubs.push(adaptHubRecord(null, loc));
-    }
   });
 
   return hubs;

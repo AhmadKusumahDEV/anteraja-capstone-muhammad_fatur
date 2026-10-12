@@ -5,7 +5,7 @@ import { formatDwell } from '../utils/calculations.js';
 // Subcomponent to handle fitBounds, panTo, and invalidateSize
 function MapController({ hubs, selectedHubId }) {
   const map = useMap();
-  const prevHubCountRef = useRef(hubs.length);
+  const prevHubCountRef = useRef(null);
 
   // Invalidate map size and fit bounds when visible hubs change
   useEffect(() => {
@@ -16,7 +16,7 @@ function MapController({ hubs, selectedHubId }) {
       .map(h => [h.lat, h.lng]);
 
     if (validCoords.length > 0 && prevHubCountRef.current !== hubs.length) {
-      map.fitBounds(validCoords, { padding: [30, 30], maxZoom: 8 });
+      map.fitBounds(validCoords, { padding: [20, 20], maxZoom: 7 });
       prevHubCountRef.current = hubs.length;
     }
   }, [hubs, map]);
@@ -41,7 +41,7 @@ function MapController({ hubs, selectedHubId }) {
   return null;
 }
 
-export function HubMap({ hubs, selectedHubId, onSelectHub }) {
+export function HubMap({ hubs, selectedHubId, onSelectHub, onOpenDetail }) {
   // Default coordinates centered on Indonesia archipelago
   const defaultCenter = [-2.5489, 118.0149];
   const defaultZoom = 5;
@@ -118,9 +118,28 @@ export function HubMap({ hubs, selectedHubId, onSelectHub }) {
                     <div style={{ fontSize: '12px', fontWeight: 600, color: isPriority ? '#E6007E' : '#111827' }}>
                       Avg Dwell: {formatDwell(hub.meanDwellHours, 'hrs')}
                     </div>
-                    <div style={{ fontSize: '11px', color: '#6B7280', marginTop: '2px' }}>
+                    <div style={{ fontSize: '11px', color: '#6B7280', marginTop: '2px', marginBottom: onOpenDetail ? '8px' : '0' }}>
                       Status: {isPriority ? 'Priority' : 'Normal'}
                     </div>
+                    {onOpenDetail && (
+                      <button
+                        type="button"
+                        onClick={() => onOpenDetail(hub.hubId)}
+                        style={{
+                          width: '100%',
+                          padding: '5px 8px',
+                          fontSize: '11px',
+                          fontWeight: 600,
+                          backgroundColor: '#1B1464',
+                          color: '#ffffff',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Inspect Details &rarr;
+                      </button>
+                    )}
                   </div>
                 </Popup>
               </CircleMarker>

@@ -5,7 +5,7 @@ import { FilterBar } from '../components/FilterBar.jsx';
 import { HubMap } from '../components/HubMap.jsx';
 import { HubList } from '../components/HubList.jsx';
 import { HubDetail } from '../components/HubDetail.jsx';
-import { EmptyView, EmptyDatasetView } from '../components/StateViews.jsx';
+import { EmptyView, EmptyDatasetView, EmptyPriorityView } from '../components/StateViews.jsx';
 import { ErrorBoundary } from '../components/ErrorBoundary.jsx';
 import {
   computeGlobalMeanDwell,
@@ -20,6 +20,7 @@ export function Dashboard({ hubs = [] }) {
   const [priorityOnly, setPriorityOnly] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedHubId, setSelectedHubId] = useState(null);
+  const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
 
   // Responsive state for mobile layout
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 1024);
@@ -110,12 +111,16 @@ export function Dashboard({ hubs = [] }) {
         priorityCount={priorityCount}
       />
 
-      {/* Empty Case: Filter returns 0 hubs */}
+      {/* Empty Cases */}
       {visibleHubs.length === 0 ? (
-        <EmptyView
-          message="No hubs match your filter"
-          onReset={handleResetFilter}
-        />
+        priorityOnly && priorityCount === 0 && !searchQuery ? (
+          <EmptyPriorityView onShowAll={() => setPriorityOnly(false)} />
+        ) : (
+          <EmptyView
+            message="No hubs match your filter"
+            onReset={handleResetFilter}
+          />
+        )
       ) : (
         <div className="dashboard-split">
           {/* Map isolated in an ErrorBoundary: map failure must not break KPIs or list */}
@@ -155,6 +160,10 @@ export function Dashboard({ hubs = [] }) {
               hubs={visibleHubs}
               selectedHubId={selectedHubId}
               onSelectHub={(id) => setSelectedHubId(id)}
+              onOpenDetail={(id) => {
+                setSelectedHubId(id);
+                if (isMobile) setIsMobileSheetOpen(true);
+              }}
             />
           </ErrorBoundary>
 
@@ -170,7 +179,10 @@ export function Dashboard({ hubs = [] }) {
               <HubList
                 hubs={visibleHubs}
                 selectedHubId={selectedHubId}
-                onSelectHub={(id) => setSelectedHubId(id)}
+                onSelectHub={(id) => {
+                  setSelectedHubId(id);
+                  if (isMobile) setIsMobileSheetOpen(true);
+                }}
               />
             )}
           </div>
@@ -178,10 +190,13 @@ export function Dashboard({ hubs = [] }) {
       )}
 
       {/* Mobile Bottom Sheet for Detail */}
-      {isMobile && selectedHub && (
+      {isMobile && selectedHub && isMobileSheetOpen && (
         <HubDetail
           hub={selectedHub}
-          onClose={() => setSelectedHubId(null)}
+          onClose={() => {
+            setIsMobileSheetOpen(false);
+            setSelectedHubId(null);
+          }}
           isMobile={true}
         />
       )}

@@ -40,12 +40,17 @@ export function AiInsight({ aiSummary, aiSummaryError, onRetry, hubs = [], isLoa
 
   if (isInvalidShape) {
     return (
-      <div className="card" style={{ textAlign: 'center', padding: '3rem 1.5rem' }}>
-        <div style={{ fontSize: '32px', marginBottom: '8px' }}>🤖</div>
-        <h3 style={{ margin: '0 0 6px', color: '#1B1464', fontSize: '18px' }}>Data not available</h3>
-        <p style={{ margin: 0, color: '#6B7280', fontSize: '13px' }}>
-          AI operational summary could not be found or has an unexpected format.
-        </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div className="card" style={{ textAlign: 'center', padding: '3rem 1.5rem' }}>
+          <div style={{ fontSize: '32px', marginBottom: '8px' }}>🤖</div>
+          <h3 style={{ margin: '0 0 6px', color: '#1B1464', fontSize: '18px' }}>Data not available</h3>
+          <p style={{ margin: 0, color: '#6B7280', fontSize: '13px' }}>
+            AI operational summary could not be found or has an unexpected format.
+          </p>
+        </div>
+        <div style={{ fontSize: '12px', color: '#6B7280', fontStyle: 'italic', textAlign: 'center', marginTop: '8px' }}>
+          Generated from verified metrics only.
+        </div>
       </div>
     );
   }

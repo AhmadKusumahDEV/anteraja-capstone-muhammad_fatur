@@ -224,3 +224,49 @@ export function EmptyDatasetView() {
     </div>
   );
 }
+
+/**
+ * EmptyPriorityView component
+ * Rendered when Priority Only is on but no hub is priority in the dataset.
+ */
+export function EmptyPriorityView({ onShowAll }) {
+  return (
+    <div
+      style={{
+        padding: '3.5rem 1.5rem',
+        textAlign: 'center',
+        backgroundColor: '#fff',
+        borderRadius: '12px',
+        border: '1px dashed #D1D5DB',
+        margin: '1.5rem 0'
+      }}
+    >
+      <div style={{ fontSize: '32px', marginBottom: '12px' }}>🎯</div>
+      <h3 style={{ margin: '0 0 8px', color: '#1B1464', fontSize: '16px' }}>
+        No hubs meet the priority threshold
+      </h3>
+      <p style={{ margin: '0 0 20px', color: '#6B7280', fontSize: '13px' }}>
+        All facilities operate within the standard dwell time threshold (&lt; 6 hrs).
+      </p>
+      {onShowAll && (
+        <button
+          type="button"
+          onClick={onShowAll}
+          style={{
+            padding: '9px 20px',
+            backgroundColor: '#1B1464',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '13px',
+            fontWeight: 600,
+            cursor: 'pointer'
+          }}
+        >
+          Show All Hubs
+        </button>
+      )}
+    </div>
+  );
+}
+
