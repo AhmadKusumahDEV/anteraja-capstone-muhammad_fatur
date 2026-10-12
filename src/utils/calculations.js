@@ -130,7 +130,7 @@ export function countPriorityHubs(hubs, threshold = PRIORITY_THRESHOLD_HOURS) {
  * @param {string} unit - default 'jam'
  * @returns {string}
  */
-export function formatDwell(hours, unit = 'jam') {
+export function formatDwell(hours, unit = 'hrs') {
   if (hours === null || hours === undefined || Number.isNaN(hours)) {
     return 'N/A';
   }

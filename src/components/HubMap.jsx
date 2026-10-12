@@ -103,7 +103,7 @@ export function HubMap({ hubs, selectedHubId, onSelectHub }) {
                 <Tooltip direction="top" offset={[0, -8]}>
                   <div style={{ fontWeight: 600 }}>{hub.name}</div>
                   <div style={{ fontSize: '11px' }}>
-                    {formatDwell(hub.meanDwellHours, 'jam')} {isPriority ? '• Priority' : ''}
+                    {formatDwell(hub.meanDwellHours, 'hrs')} {isPriority ? '• Priority' : ''}
                   </div>
                 </Tooltip>
 
@@ -116,10 +116,10 @@ export function HubMap({ hubs, selectedHubId, onSelectHub }) {
                       ID: {hub.hubId}
                     </div>
                     <div style={{ fontSize: '12px', fontWeight: 600, color: isPriority ? '#E6007E' : '#111827' }}>
-                      Rata-rata: {formatDwell(hub.meanDwellHours, 'jam')}
+                      Avg Dwell: {formatDwell(hub.meanDwellHours, 'hrs')}
                     </div>
                     <div style={{ fontSize: '11px', color: '#6B7280', marginTop: '2px' }}>
-                      Status: {isPriority ? 'Prioritas Investigasi' : 'Normal'}
+                      Status: {isPriority ? 'Priority' : 'Normal'}
                     </div>
                   </div>
                 </Popup>
@@ -132,11 +132,11 @@ export function HubMap({ hubs, selectedHubId, onSelectHub }) {
       <div className="map-legend">
         <div className="legend-item">
           <span className="legend-dot priority" />
-          <span>Priority (&ge; 6 jam)</span>
+          <span>Priority (&ge; 6 hrs)</span>
         </div>
         <div className="legend-item">
           <span className="legend-dot normal" />
-          <span>Normal (&lt; 6 jam)</span>
+          <span>Normal (&lt; 6 hrs)</span>
         </div>
       </div>
     </div>

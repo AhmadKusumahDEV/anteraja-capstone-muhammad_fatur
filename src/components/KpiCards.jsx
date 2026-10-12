@@ -20,7 +20,7 @@ export function KpiCards({ totalHubs, completedVisits, globalMeanDwell, priority
         <div className="kpi-label">Global Mean Dwell Time</div>
         <div className="kpi-value">
           {globalMeanDwell.toFixed(2)}
-          <span className="kpi-unit">jam</span>
+          <span className="kpi-unit">hrs</span>
         </div>
         <div className="kpi-note">Network weighted average</div>
       </div>
@@ -28,7 +28,7 @@ export function KpiCards({ totalHubs, completedVisits, globalMeanDwell, priority
       <div className="card kpi-card priority-kpi">
         <div className="kpi-label">Priority Hub Count</div>
         <div className="kpi-value">{priorityCount}</div>
-        <div className="kpi-note">Above threshold (&ge; 6 jam)</div>
+        <div className="kpi-note">Above threshold (&ge; 6 hrs)</div>
       </div>
     </div>
   );

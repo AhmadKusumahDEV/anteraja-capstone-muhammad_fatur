@@ -5,6 +5,7 @@ import { Sidebar } from './components/Sidebar.jsx';
 import { Dashboard } from './pages/Dashboard.jsx';
 import { AiInsight } from './pages/AiInsight.jsx';
 import { DataNotes } from './pages/DataNotes.jsx';
+import { ErrorBoundary } from './components/ErrorBoundary.jsx';
 
 export default function App() {
   const { status, data, error, retry } = useHubData();
@@ -26,7 +27,7 @@ export default function App() {
     );
   }
 
-  const { hubs, aiSummary, metrics } = data;
+  const { hubs, aiSummary, aiSummaryError, metrics } = data;
 
   // Format last updated timestamp if present in data
   let lastUpdatedText = null;
@@ -63,9 +64,26 @@ export default function App() {
         </header>
 
         <main className="content-container">
-          {activePage === 'dashboard' && <Dashboard hubs={hubs} />}
-          {activePage === 'ai-insight' && <AiInsight aiSummary={aiSummary} hubs={hubs} />}
-          {activePage === 'data-notes' && <DataNotes />}
+          {activePage === 'dashboard' && (
+            <ErrorBoundary name="DashboardPage">
+              <Dashboard hubs={hubs} />
+            </ErrorBoundary>
+          )}
+          {activePage === 'ai-insight' && (
+            <ErrorBoundary name="AiInsightPage">
+              <AiInsight
+                aiSummary={aiSummary}
+                aiSummaryError={aiSummaryError}
+                onRetry={retry}
+                hubs={hubs}
+              />
+            </ErrorBoundary>
+          )}
+          {activePage === 'data-notes' && (
+            <ErrorBoundary name="DataNotesPage">
+              <DataNotes />
+            </ErrorBoundary>
+          )}
         </main>
       </div>
     </div>

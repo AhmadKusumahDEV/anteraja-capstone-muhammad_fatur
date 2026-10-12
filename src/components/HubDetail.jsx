@@ -53,7 +53,7 @@ export function HubDetail({ hub, onClose, isMobile = false }) {
         <div className="detail-metric-box">
           <div className="detail-metric-label">Avg Dwell Time</div>
           <div className={`detail-metric-val ${hub.isPriority ? 'highlight' : ''}`}>
-            {formatDwell(hub.meanDwellHours, 'jam')}
+            {formatDwell(hub.meanDwellHours, 'hrs')}
           </div>
         </div>
 
@@ -64,12 +64,12 @@ export function HubDetail({ hub, onClose, isMobile = false }) {
 
         <div className="detail-metric-box">
           <div className="detail-metric-label">Min Dwell Time</div>
-          <div className="detail-metric-val">{formatDwell(hub.minDwellHours, 'jam')}</div>
+          <div className="detail-metric-val">{formatDwell(hub.minDwellHours, 'hrs')}</div>
         </div>
 
         <div className="detail-metric-box">
           <div className="detail-metric-label">Max Dwell Time</div>
-          <div className="detail-metric-val">{formatDwell(hub.maxDwellHours, 'jam')}</div>
+          <div className="detail-metric-val">{formatDwell(hub.maxDwellHours, 'hrs')}</div>
         </div>
 
         <div className="detail-metric-box" style={{ gridColumn: 'span 2' }}>

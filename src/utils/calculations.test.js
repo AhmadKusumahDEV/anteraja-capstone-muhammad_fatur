@@ -125,8 +125,9 @@ describe('Calculations - getTop3Hubs', () => {
 
 describe('Calculations - Formatters', () => {
   it('formats dwell time with unit', () => {
+    expect(formatDwell(6.852)).toBe('6.85 hrs');
     expect(formatDwell(6.852, 'jam')).toBe('6.85 jam');
-    expect(formatDwell(null, 'jam')).toBe('N/A');
+    expect(formatDwell(null)).toBe('N/A');
   });
 
   it('formats number with thousands separator', () => {

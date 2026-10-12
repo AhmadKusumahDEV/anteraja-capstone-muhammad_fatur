@@ -1,12 +1,63 @@
 import React from 'react';
-import { formatDwell } from '../utils/calculations.js';
+import { formatDwell, formatNumber } from '../utils/calculations.js';
+import { ErrorView } from '../components/StateViews.jsx';
 
-export function AiInsight({ aiSummary, hubs = [] }) {
-  const summaryText = aiSummary?.summary || 'Data not available';
-  const priorityHubIds = Array.isArray(aiSummary?.priority_hubs) ? aiSummary.priority_hubs : [];
-  const nextChecks = Array.isArray(aiSummary?.next_checks) ? aiSummary.next_checks : [];
+/**
+ * AI Operational Insight Page
+ * Displays summary, priority hubs, and next checks.
+ * Follows Skill Step 6 & 7:
+ * - All text rendered as plain text React nodes (NO dangerouslySetInnerHTML)
+ * - Handles: loading, error with Retry, wrong shape ("Data not available"), empty priority_hubs
+ * - Independent error boundary: failure of ai-summary does not break other pages
+ */
+export function AiInsight({ aiSummary, aiSummaryError, onRetry, hubs = [], isLoading = false }) {
+  // 1. Loading State
+  if (isLoading) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div className="card" style={{ height: '120px', backgroundColor: '#F3F4F6' }} />
+        <div className="card" style={{ height: '200px', backgroundColor: '#F3F4F6' }} />
+        <div className="card" style={{ height: '160px', backgroundColor: '#F3F4F6' }} />
+      </div>
+    );
+  }
 
-  // Match priority hub details if available
+  // 2. Error State with Retry
+  if (aiSummaryError) {
+    return (
+      <ErrorView
+        error={aiSummaryError}
+        onRetry={onRetry}
+      />
+    );
+  }
+
+  // 3. Wrong Shape / Data Not Available
+  const isInvalidShape =
+    !aiSummary ||
+    (typeof aiSummary !== 'object') ||
+    (!aiSummary.summary && (!Array.isArray(aiSummary.priority_hubs) || aiSummary.priority_hubs.length === 0));
+
+  if (isInvalidShape) {
+    return (
+      <div className="card" style={{ textAlign: 'center', padding: '3rem 1.5rem' }}>
+        <div style={{ fontSize: '32px', marginBottom: '8px' }}>🤖</div>
+        <h3 style={{ margin: '0 0 6px', color: '#1B1464', fontSize: '18px' }}>Data not available</h3>
+        <p style={{ margin: 0, color: '#6B7280', fontSize: '13px' }}>
+          AI operational summary could not be found or has an unexpected format.
+        </p>
+      </div>
+    );
+  }
+
+  const summaryText = typeof aiSummary.summary === 'string' && aiSummary.summary.trim().length > 0
+    ? aiSummary.summary
+    : 'Data not available';
+
+  const priorityHubIds = Array.isArray(aiSummary.priority_hubs) ? aiSummary.priority_hubs : [];
+  const nextChecks = Array.isArray(aiSummary.next_checks) ? aiSummary.next_checks : [];
+
+  // Map to get real hub details from joined dataset
   const hubMap = new Map(hubs.map(h => [h.hubId, h]));
 
   return (
@@ -28,7 +79,7 @@ export function AiInsight({ aiSummary, hubs = [] }) {
         </h2>
 
         {priorityHubIds.length === 0 ? (
-          <p style={{ margin: 0, fontSize: '14px', color: '#6B7280' }}>
+          <p style={{ margin: 0, fontSize: '14px', color: '#6B7280', fontStyle: 'italic' }}>
             No hubs meet the priority threshold
           </p>
         ) : (
@@ -36,13 +87,14 @@ export function AiInsight({ aiSummary, hubs = [] }) {
             {priorityHubIds.map(hubId => {
               const hub = hubMap.get(hubId);
               const displayName = hub?.name || hubId;
-              const meanDwell = hub ? formatDwell(hub.meanDwellHours, 'jam') : '6+ jam';
+              const meanDwell = hub ? formatDwell(hub.meanDwellHours, 'hrs') : '6+ hrs';
+              const completedText = hub ? `${formatNumber(hub.completedVisits)} visits` : '';
 
               return (
                 <div
                   key={hubId}
                   style={{
-                    padding: '12px 16px',
+                    padding: '14px 18px',
                     borderRadius: '8px',
                     backgroundColor: '#F8FAFC',
                     border: '1px solid #E2E8F0',
@@ -63,7 +115,7 @@ export function AiInsight({ aiSummary, hubs = [] }) {
                     </div>
                   </div>
                   <div style={{ fontSize: '12px', color: '#6B7280' }}>
-                    Hub ID: {hubId} {hub ? `• ${hub.completedVisits.toLocaleString('id-ID')} kunjungan selesai` : ''}
+                    Hub ID: {hubId} {completedText ? `• ${completedText} completed` : ''}
                   </div>
                 </div>
               );
@@ -80,7 +132,7 @@ export function AiInsight({ aiSummary, hubs = [] }) {
 
         {nextChecks.length === 0 ? (
           <p style={{ margin: 0, fontSize: '14px', color: '#6B7280' }}>
-            No checklist items available.
+            No action items available.
           </p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -116,6 +168,7 @@ export function AiInsight({ aiSummary, hubs = [] }) {
         )}
       </div>
 
+      {/* Footnote matching design */}
       <div style={{ fontSize: '11px', color: '#9CA3AF', fontStyle: 'italic', textAlign: 'center' }}>
         Generated from verified metrics only.
       </div>

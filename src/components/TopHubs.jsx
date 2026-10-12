@@ -37,7 +37,7 @@ export function TopHubs({ topHubs, onSelectHub }) {
 
             <div className="top-hub-dwell-row">
               <span className="top-hub-dwell-label">Avg Dwell Time</span>
-              <span className="top-hub-dwell-val">{formatDwell(hub.meanDwellHours, 'jam')}</span>
+              <span className="top-hub-dwell-val">{formatDwell(hub.meanDwellHours, 'hrs')}</span>
             </div>
           </div>
         ))}

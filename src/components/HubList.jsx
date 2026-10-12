@@ -41,11 +41,16 @@ export function HubList({ hubs, selectedHubId, onSelectHub }) {
               <div className="hub-row-right">
                 <div style={{ textAlign: 'right' }}>
                   <div className={`hub-row-dwell ${hub.isPriority ? 'priority' : ''}`}>
-                    {formatDwell(hub.meanDwellHours, 'jam')}
+                    {formatDwell(hub.meanDwellHours, 'hrs')}
                   </div>
-                  <span className={`badge ${hub.isPriority ? 'priority' : 'normal'}`} style={{ marginTop: '2px' }}>
-                    {hub.isPriority ? 'Priority' : 'Normal'}
-                  </span>
+                  <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end', marginTop: '2px' }}>
+                    {hub.lat === null && (
+                      <span className="badge normal" style={{ fontSize: '10px' }}>No Coords</span>
+                    )}
+                    <span className={`badge ${hub.isPriority ? 'priority' : 'normal'}`}>
+                      {hub.isPriority ? 'Priority' : 'Normal'}
+                    </span>
+                  </div>
                 </div>
                 <span className="hub-row-chevron">&rsaquo;</span>
               </div>
