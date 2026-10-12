@@ -1,0 +1,183 @@
+{
+  "generated_at": "2026-10-12T07:15:22.450Z",
+  "source": "docs/big-data-bottleneck-analysis/analysis/scan_events.csv (Day 18, branch feature/bigdata-bottleneck-hubs)",
+  "pipeline": [
+    "parse timestamp (drop invalid)",
+    "drop duplicate scan events",
+    "pair ARRIVAL -> DEPARTURE per hub x package",
+    "drop incomplete pairs and DEPARTURE <= ARRIVAL",
+    "dwell hours = last DEPARTURE - first ARRIVAL",
+    "aggregate per hub + global KPI"
+  ],
+  "rules": {
+    "min_mean_dwell_hours": 6,
+    "min_completed_visits": 100,
+    "disclaimer": "Ambang 6 jam hanya aturan simulasi latihan Day 19, bukan SLA resmi Anteraja.",
+    "ranking_basis": "raw numeric mean_dwell_hours, bukan string terformat"
+  },
+  "quality": {
+    "raw_events": 51151,
+    "invalid_timestamp": 385,
+    "duplicate_scans": 912,
+    "package_hub_pairs": 24927,
+    "missing_arrival": 940,
+    "missing_departure": 924,
+    "departure_not_after_arrival": 245,
+    "excluded_pairs": 2109,
+    "completed_visits": 22818
+  },
+  "global": {
+    "hub_count": 12,
+    "completed_visits": 22818,
+    "open_visits": 924,
+    "mean_dwell_hours": 7.1384,
+    "median_dwell_hours": 6.485,
+    "priority_hub_count": 8
+  },
+  "hubs": [
+    {
+      "hub_id": "HUB_AMB",
+      "completed_visits": 48,
+      "mean_dwell_hours": 11.9425,
+      "median_dwell_hours": 11.451,
+      "min_dwell_hours": 4.8512,
+      "max_dwell_hours": 22.314,
+      "p90_dwell_hours": 17.652,
+      "sample_sufficient": false,
+      "is_priority": false,
+      "mean_rank": 1
+    },
+    {
+      "hub_id": "HUB_MDN",
+      "completed_visits": 1845,
+      "mean_dwell_hours": 10.4218,
+      "median_dwell_hours": 9.9824,
+      "min_dwell_hours": 4.1205,
+      "max_dwell_hours": 23.854,
+      "p90_dwell_hours": 14.125,
+      "sample_sufficient": true,
+      "is_priority": true,
+      "mean_rank": 2
+    },
+    {
+      "hub_id": "HUB_MKS",
+      "completed_visits": 2120,
+      "mean_dwell_hours": 9.7842,
+      "median_dwell_hours": 9.4215,
+      "min_dwell_hours": 3.9514,
+      "max_dwell_hours": 22.915,
+      "p90_dwell_hours": 13.512,
+      "sample_sufficient": true,
+      "is_priority": true,
+      "mean_rank": 3
+    },
+    {
+      "hub_id": "HUB_DPS",
+      "completed_visits": 1670,
+      "mean_dwell_hours": 9.1534,
+      "median_dwell_hours": 8.841,
+      "min_dwell_hours": 3.821,
+      "max_dwell_hours": 21.654,
+      "p90_dwell_hours": 12.431,
+      "sample_sufficient": true,
+      "is_priority": true,
+      "mean_rank": 4
+    },
+    {
+      "hub_id": "HUB_PDG",
+      "completed_visits": 1410,
+      "mean_dwell_hours": 8.6412,
+      "median_dwell_hours": 8.352,
+      "min_dwell_hours": 3.451,
+      "max_dwell_hours": 19.452,
+      "p90_dwell_hours": 11.854,
+      "sample_sufficient": true,
+      "is_priority": true,
+      "mean_rank": 5
+    },
+    {
+      "hub_id": "HUB_BJM",
+      "completed_visits": 1230,
+      "mean_dwell_hours": 8.1255,
+      "median_dwell_hours": 7.915,
+      "min_dwell_hours": 3.254,
+      "max_dwell_hours": 17.852,
+      "p90_dwell_hours": 10.985,
+      "sample_sufficient": true,
+      "is_priority": true,
+      "mean_rank": 6
+    },
+    {
+      "hub_id": "HUB_PLM",
+      "completed_visits": 1520,
+      "mean_dwell_hours": 7.554,
+      "median_dwell_hours": 7.284,
+      "min_dwell_hours": 2.985,
+      "max_dwell_hours": 16.741,
+      "p90_dwell_hours": 10.321,
+      "sample_sufficient": true,
+      "is_priority": true,
+      "mean_rank": 7
+    },
+    {
+      "hub_id": "HUB_SBY",
+      "completed_visits": 2780,
+      "mean_dwell_hours": 6.8415,
+      "median_dwell_hours": 6.612,
+      "min_dwell_hours": 2.741,
+      "max_dwell_hours": 15.652,
+      "p90_dwell_hours": 9.124,
+      "sample_sufficient": true,
+      "is_priority": true,
+      "mean_rank": 8
+    },
+    {
+      "hub_id": "HUB_SMG",
+      "completed_visits": 2340,
+      "mean_dwell_hours": 6.254,
+      "median_dwell_hours": 6.015,
+      "min_dwell_hours": 2.512,
+      "max_dwell_hours": 13.412,
+      "p90_dwell_hours": 8.421,
+      "sample_sufficient": true,
+      "is_priority": true,
+      "mean_rank": 9
+    },
+    {
+      "hub_id": "HUB_JOG",
+      "completed_visits": 2050,
+      "mean_dwell_hours": 5.8214,
+      "median_dwell_hours": 5.612,
+      "min_dwell_hours": 2.415,
+      "max_dwell_hours": 12.854,
+      "p90_dwell_hours": 7.954,
+      "sample_sufficient": true,
+      "is_priority": false,
+      "mean_rank": 10
+    },
+    {
+      "hub_id": "HUB_BDG",
+      "completed_visits": 2560,
+      "mean_dwell_hours": 5.142,
+      "median_dwell_hours": 4.952,
+      "min_dwell_hours": 2.124,
+      "max_dwell_hours": 12.105,
+      "p90_dwell_hours": 6.954,
+      "sample_sufficient": true,
+      "is_priority": false,
+      "mean_rank": 11
+    },
+    {
+      "hub_id": "HUB_CGK",
+      "completed_visits": 3245,
+      "mean_dwell_hours": 4.512,
+      "median_dwell_hours": 4.315,
+      "min_dwell_hours": 1.954,
+      "max_dwell_hours": 11.025,
+      "p90_dwell_hours": 6.084,
+      "sample_sufficient": true,
+      "is_priority": false,
+      "mean_rank": 12
+    }
+  ]
+}
