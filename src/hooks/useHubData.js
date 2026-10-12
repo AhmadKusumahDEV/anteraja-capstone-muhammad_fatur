@@ -65,12 +65,6 @@ export function useHubData() {
         }
         currentFileStatuses.metrics = 'loaded';
 
-        if (!locationsRes.ok) {
-          currentFileStatuses.locations = 'error';
-          throw new Error(`Failed to load locations.json (HTTP ${locationsRes.status} ${locationsRes.statusText})`);
-        }
-        currentFileStatuses.locations = 'loaded';
-
         let metricsData;
         try {
           metricsData = await metricsRes.json();
@@ -79,12 +73,18 @@ export function useHubData() {
           throw new Error(`Invalid JSON in metrics.json: ${jsonErr.message}`);
         }
 
-        let locationsData;
-        try {
-          locationsData = await locationsRes.json();
-        } catch (jsonErr) {
-          currentFileStatuses.locations = 'invalid_json';
-          throw new Error(`Invalid JSON in locations.json: ${jsonErr.message}`);
+        let locationsData = { hubs: [] };
+        if (!locationsRes.ok) {
+          currentFileStatuses.locations = 'error';
+          console.warn(`[useHubData] locations.json failed to load (HTTP ${locationsRes.status}). Hubs will be rendered without geographic coordinates.`);
+        } else {
+          try {
+            locationsData = await locationsRes.json();
+            currentFileStatuses.locations = 'loaded';
+          } catch (jsonErr) {
+            currentFileStatuses.locations = 'invalid_json';
+            console.warn(`[useHubData] Invalid JSON in locations.json: ${jsonErr.message}. Hubs will be rendered without geographic coordinates.`);
+          }
         }
 
         // 2. Fetch ai-summary.json independently
