@@ -79,8 +79,15 @@ The visual design is aligned with the approved Stitch operational design system,
 > - **Stitch Screen ID**: `[TODO: Insert Stitch Screen ID from design workspace]`
 > - **Stitch Prototype URL**: `[TODO: Insert link to Stitch interactive prototype]`
 > - **Approved Design Screenshots**:
->   - Expected file: `screenshots/stitch-v1.png` — *Initial Stitch desktop & mobile concept*
->   - Expected file: `screenshots/stitch-v2.png` — *Revised simplified supervisor workflow*
+>   - `screenshots/stitch-v1.png` — *Initial Stitch desktop & mobile concept*
+>   - `screenshots/stitch-v2.png` — *Revised simplified supervisor workflow*
+
+#### Stitch Design Mockups
+![Stitch Design Concept v1](../screenshots/stitch-v1.png)
+*Figure: Initial Stitch desktop and mobile operational concept (v1).*
+
+![Stitch Design Concept v2](../screenshots/stitch-v2.png)
+*Figure: Revised and approved supervisor workflow layout (v2).*
 
 ---
 
